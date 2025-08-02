@@ -1,0 +1,1075 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="moyoo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1. 概要该文档主要对pyg-lib从python顶层至c++&#x2F;cuda底层的调用链进行分析。并分析了setup.py以及CmakeLists.txt以了解整个项目的编译以及安装过程。  以上为pyg-lib由顶层至底层的调用链，在第二节以例子的形式进行分析。 2. 函数调用分析2.1 index_sort()index_sort()实现了一个高效的排序算法，在顶层部分直接调用由底层c+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pyg-lib调用分析">
+<meta property="og:url" content="http://moyoo0.github.io/2024/12/11/pyg-lib%E8%B0%83%E7%94%A8%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="moyoo">
+<meta property="og:description" content="1. 概要该文档主要对pyg-lib从python顶层至c++&#x2F;cuda底层的调用链进行分析。并分析了setup.py以及CmakeLists.txt以了解整个项目的编译以及安装过程。  以上为pyg-lib由顶层至底层的调用链，在第二节以例子的形式进行分析。 2. 函数调用分析2.1 index_sort()index_sort()实现了一个高效的排序算法，在顶层部分直接调用由底层c+">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://moyoo0.github.io/pyg-lib%E8%B0%83%E7%94%A8%E9%93%BE.jpg">
+<meta property="article:published_time" content="2024-12-11T08:43:51.000Z">
+<meta property="article:modified_time" content="2024-12-14T05:53:36.788Z">
+<meta property="article:author" content="moyoo">
+<meta property="article:tag" content="笔记">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://moyoo0.github.io/pyg-lib%E8%B0%83%E7%94%A8%E9%93%BE.jpg">
+  
+  
+  
+  <title>pyg-lib调用分析 - moyoo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"moyoo0.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"FyJriWj3B2ezdRzT1ycTlHTK-gzGzoHsz","app_key":"qxYsNPBUjdgt7F2Io9tPsZvr","server_url":"https://fyjriwj3.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>moyoo</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="pyg-lib调用分析"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-12-11 16:43" pubdate>
+          December 11, 2024 pm
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.8k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          23 mins
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> views
+        </span>
+        
+      
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">pyg-lib调用分析</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="1-概要"><a href="#1-概要" class="headerlink" title="1. 概要"></a>1. 概要</h2><p>该文档主要对pyg-lib从python顶层至c++&#x2F;cuda底层的调用链进行分析。并分析了setup.py以及CmakeLists.txt以了解整个项目的编译以及安装过程。</p>
+<p><img src="/pyg-lib%E8%B0%83%E7%94%A8%E9%93%BE.jpg" srcset="/img/loading.gif" lazyload alt="pyg-lib调用链"></p>
+<p>以上为pyg-lib由顶层至底层的调用链，在第二节以例子的形式进行分析。</p>
+<h2 id="2-函数调用分析"><a href="#2-函数调用分析" class="headerlink" title="2. 函数调用分析"></a>2. 函数调用分析</h2><h3 id="2-1-index-sort"><a href="#2-1-index-sort" class="headerlink" title="2.1 index_sort()"></a>2.1 index_sort()</h3><p>index_sort()实现了一个高效的排序算法，在顶层部分直接调用由底层c++注册的操作</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> inputs.is_cpu:</span><br><span class="line">    <span class="keyword">return</span> torch.sort(inputs)</span><br><span class="line"><span class="keyword">return</span> torch.ops.pyg.index_sort(inputs, max_value)</span><br></pre></td></tr></table></figure>
+
+<p>由于只提供了cpu加速，因此该函数不涉及cuda代码。其中ops为pyg自定义的操作空间，c++代码的定义在csrc目录下。</p>
+<h4 id="2-1-1-index-sort-cpp"><a href="#2-1-1-index-sort-cpp" class="headerlink" title="2.1.1 index_sort.cpp"></a>2.1.1 index_sort.cpp</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ATen/core/dispatch/Dispatcher.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;torch/library.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> pyg &#123;</span><br><span class="line"><span class="keyword">namespace</span> ops &#123;</span><br><span class="line"></span><br><span class="line"><span class="built_in">TORCH_LIBRARY_FRAGMENT</span>(pyg, m) &#123;</span><br><span class="line">  m.<span class="built_in">def</span>(<span class="built_in">TORCH_SELECTIVE_SCHEMA</span>(</span><br><span class="line">      <span class="string">&quot;pyg::index_sort(Tensor indices, int? max = None) -&gt; (Tensor, Tensor)&quot;</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;  <span class="comment">// namespace ops</span></span><br><span class="line">&#125;  <span class="comment">// namespace pyg</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这一部分用c++实现了index_sort的操作接口，只声明index_sort()的参数表。使用 <code>TORCH_LIBRARY_FRAGMENT</code> 注册操作的名称和签名（schema）。<code>TORCH_LIBRARY_FRAGMENT</code>和<code>TORCH_SELECTIVE_SCHEMA</code>均由pytorch提供。</p>
+<h4 id="2-1-2-index-sort-kernal-cpp"><a href="#2-1-2-index-sort-kernal-cpp" class="headerlink" title="2.1.2 index_sort_kernal.cpp"></a>2.1.2 index_sort_kernal.cpp</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;tuple&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ATen/ATen.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ATen/Parallel.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;torch/library.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;radix_sort.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> pyg &#123;</span><br><span class="line"><span class="keyword">namespace</span> ops &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> &#123;</span><br><span class="line"></span><br><span class="line"><span class="function">std::tuple&lt;at::Tensor, at::Tensor&gt; <span class="title">index_sort_kernel</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> at::Tensor&amp; input,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> at::optional&lt;<span class="type">int64_t</span>&gt; max)</span> </span>&#123;</span><br><span class="line"> <span class="comment">//具体实现</span></span><br><span class="line"></span><br><span class="line">&#125;  <span class="comment">// namespace</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">TORCH_LIBRARY_IMPL</span>(pyg, CPU, m) &#123;</span><br><span class="line">  m.<span class="built_in">impl</span>(<span class="built_in">TORCH_SELECTIVE_NAME</span>(<span class="string">&quot;pyg::index_sort&quot;</span>), <span class="built_in">TORCH_FN</span>(index_sort_kernel));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;  <span class="comment">// namespace ops</span></span><br><span class="line">&#125;  <span class="comment">// namespace pyg</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这里是<code>index_sort()</code>方法的核心实现，被命名为<code>index_sort_kernal()</code>。通过<code>TORCH_LIBRARY_IMPL</code>将<code>index_sort_kernel</code>绑定到<code>index_sort</code>接口，当上层调用<code>index_sort</code>时将自动使用<code>index_sort_kernal()</code>实现。</p>
+<h3 id="2-2-softmax"><a href="#2-2-softmax" class="headerlink" title="2.2 softmax()"></a>2.2 softmax()</h3><p>pyg-lib对于<code>softmax()</code>函数也仅仅提供了cpu加速，因此不涉及cuda，但与<code>index_sort()</code>不同，其实现涉及<code>autograd</code>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">dim = dim + src.dim() <span class="keyword">if</span> dim &lt; <span class="number">0</span> <span class="keyword">else</span> dim</span><br><span class="line"><span class="keyword">return</span> torch.ops.pyg.softmax_csr(src, ptr, dim)</span><br></pre></td></tr></table></figure>
+
+<p>其顶层在对<code>dim</code>进行条件判断之后，便直接调用了底层的c++实现。</p>
+<h4 id="2-2-1-softmax-h-softmax-cpp"><a href="#2-2-1-softmax-h-softmax-cpp" class="headerlink" title="2.2.1 softmax.h softmax.cpp"></a>2.2.1 softmax.h softmax.cpp</h4><p>这两个文件用于为<code>softmax()</code>绑定接口。由于<code>softmax_csr</code> 在计算时涉及到的操作是自定义的、需要梯度计算的操作，因此需要因此需要使用 <code>c10::Dispatcher</code> 来进行调度并确保操作的正确性。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Performs softmax operations for each group.</span></span><br><span class="line"><span class="function">PYG_API at::Tensor <span class="title">softmax_csr</span><span class="params">(<span class="type">const</span> at::Tensor&amp; src,</span></span></span><br><span class="line"><span class="params"><span class="function">                               <span class="type">const</span> at::Tensor&amp; ptr,</span></span></span><br><span class="line"><span class="params"><span class="function">                               <span class="type">const</span> <span class="type">int64_t</span> dim)</span> </span>&#123;</span><br><span class="line">  at::TensorArg src_arg&#123;src, <span class="string">&quot;src&quot;</span>, <span class="number">0</span>&#125;;</span><br><span class="line">  at::TensorArg ptr_arg&#123;ptr, <span class="string">&quot;ptr&quot;</span>, <span class="number">1</span>&#125;;</span><br><span class="line">  at::CheckedFrom c&#123;<span class="string">&quot;softmax_csr&quot;</span>&#125;;</span><br><span class="line"></span><br><span class="line">  at::<span class="built_in">checkAllDefined</span>(c, &#123;src_arg, ptr_arg&#125;);</span><br><span class="line">  at::<span class="built_in">checkContiguous</span>(c, src_arg);</span><br><span class="line">  at::<span class="built_in">checkContiguous</span>(c, ptr_arg);</span><br><span class="line"></span><br><span class="line">  <span class="type">static</span> <span class="keyword">auto</span> op = c10::Dispatcher::<span class="built_in">singleton</span>()</span><br><span class="line">                       .<span class="built_in">findSchemaOrThrow</span>(<span class="string">&quot;pyg::softmax_csr&quot;</span>, <span class="string">&quot;&quot;</span>)</span><br><span class="line">                       .<span class="built_in">typed</span>&lt;<span class="keyword">decltype</span>(softmax_csr)&gt;();</span><br><span class="line">  <span class="keyword">return</span> op.<span class="built_in">call</span>(src, ptr, dim);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Computes gradient for grouped softmax operation.</span></span><br><span class="line"><span class="function">PYG_API at::Tensor <span class="title">softmax_csr_backward</span><span class="params">(<span class="type">const</span> at::Tensor&amp; out,</span></span></span><br><span class="line"><span class="params"><span class="function">                                        <span class="type">const</span> at::Tensor&amp; out_grad,</span></span></span><br><span class="line"><span class="params"><span class="function">                                        <span class="type">const</span> at::Tensor&amp; ptr,</span></span></span><br><span class="line"><span class="params"><span class="function">                                        <span class="type">const</span> <span class="type">int64_t</span> dim)</span> </span>&#123;</span><br><span class="line">	<span class="comment">//与上面类似的检查</span></span><br><span class="line">  <span class="keyword">return</span> op.<span class="built_in">call</span>(out, out_grad, ptr, dim);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里使用<code>PYG_API</code>来定义两个函数接口，该宏由pyg-lib定义，主要用于跨平台符号的导出和导入控制，特别是针对 Windows 和其他操作系统的 DLL 处理。接口的检查与调用逻辑如下：</p>
+<p><strong>输入检查：</strong></p>
+<ul>
+<li><code>at::checkAllDefined</code> 确保输入张量都已定义。</li>
+<li><code>at::checkContiguous</code> 检查输入是否是连续的内存布局（某些操作依赖此特性）。</li>
+</ul>
+<p><strong>操作查找：</strong></p>
+<ul>
+<li>通过 <code>c10::Dispatcher::singleton()</code> 获取 PyTorch 调度器实例。</li>
+<li>使用 <code>findSchemaOrThrow</code> 查找名为 <code>&quot;pyg::softmax_csr&quot;</code> 的操作，并确保找到。</li>
+<li><code>typed&lt;decltype(softmax_csr)&gt;()</code> 用于将操作类型显式声明为 <code>softmax_csr</code> 的签名。</li>
+</ul>
+<p><strong>调用操作：</strong></p>
+<ul>
+<li>使用 <code>op.call</code> 调用实际的操作实现。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">TORCH_LIBRARY_FRAGMENT(pyg, m) &#123;</span><br><span class="line">  m.<span class="keyword">def</span>(TORCH_SELECTIVE_SCHEMA(</span><br><span class="line">      <span class="string">&quot;pyg::softmax_csr(Tensor src, Tensor ptr, int dim=0) -&gt; Tensor&quot;</span>));</span><br><span class="line">  m.<span class="keyword">def</span>(TORCH_SELECTIVE_SCHEMA(</span><br><span class="line">      <span class="string">&quot;pyg::softmax_csr_backward(Tensor out, Tensor out_grad, &quot;</span></span><br><span class="line">      <span class="string">&quot;Tensor ptr, int dim=0) -&gt; Tensor&quot;</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同样使用pytorch提供的宏进行接口绑定。</p>
+<h4 id="2-2-2-cpu-softmax-kernal-cpp"><a href="#2-2-2-cpu-softmax-kernal-cpp" class="headerlink" title="2.2.2 cpu&#x2F;softmax_kernal.cpp"></a>2.2.2 cpu&#x2F;softmax_kernal.cpp</h4><p>这一部分实现了一个 CSR（Compressed Sparse Row）格式下的 Softmax 操作，并进行了前向和反向计算的实现。通过并行化的方式，提高了计算效率。<code>softmax_csr_forward_kernel</code> 调用<code>softmax_csr_forward_kernel_impl</code> 来实现前向计算。</p>
+<p><code>softmax_csr_backward_kernel</code> 调用了 <code>softmax_csr_backward_kernel_impl</code> 来实现反向传播计算。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">TORCH_LIBRARY_IMPL</span>(pyg, CPU, m) &#123;</span><br><span class="line">  m.<span class="built_in">impl</span>(<span class="built_in">TORCH_SELECTIVE_NAME</span>(<span class="string">&quot;pyg::softmax_csr&quot;</span>),</span><br><span class="line">         <span class="built_in">TORCH_FN</span>(softmax_csr_forward_kernel));</span><br><span class="line">  m.<span class="built_in">impl</span>(<span class="built_in">TORCH_SELECTIVE_NAME</span>(<span class="string">&quot;pyg::softmax_csr_backward&quot;</span>),</span><br><span class="line">         <span class="built_in">TORCH_FN</span>(softmax_csr_backward_kernel));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-2-3-autograd-softmax-kernal-cpp"><a href="#2-2-3-autograd-softmax-kernal-cpp" class="headerlink" title="2.2.3 autograd&#x2F;softmax_kernal.cpp"></a>2.2.3 autograd&#x2F;softmax_kernal.cpp</h4><p>这一部分通过继承 <code>torch::autograd::Function</code> 实现了一个自定义的 SoftmaxCSR 操作，支持自动求导功能。在前向传播中，执行了 CSR 格式的 softmax 计算，在反向传播中，计算了输入张量的梯度。通过 <code>TORCH_LIBRARY_IMPL</code> 宏将其注册到 PyTorch 的 Autograd 系统中，确保在进行反向传播时能够正确计算梯度。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">TORCH_LIBRARY_IMPL</span>(pyg, Autograd, m) &#123;</span><br><span class="line">  m.<span class="built_in">impl</span>(<span class="built_in">TORCH_SELECTIVE_NAME</span>(<span class="string">&quot;pyg::softmax_csr&quot;</span>),</span><br><span class="line">         <span class="built_in">TORCH_FN</span>(softmax_csr_autograd));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-matmul"><a href="#2-3-matmul" class="headerlink" title="2.3 matmul()"></a>2.3 matmul()</h3><p>该方法分为两个,分别是<code>grouped_matmul</code> 和<code>segment_matmul</code> 。</p>
+<p><code>grouped_matmul</code> 操作的输入是两个矩阵列表（<code>inputs</code> 和 <code>others</code>），每个列表的元素数目相同，每个组中的矩阵进行对应的矩阵乘法。</p>
+<p><code>segment_matmul</code> 操作的输入是一个矩阵 <code>inputs</code>，一个表示段范围的向量 <code>ptr</code>，以及一个按段组织的 3D 矩阵 <code>other</code>，每个段对应一个矩阵乘法。</p>
+<p>在python顶层，其调用分别为</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">outs = <span class="built_in">list</span>(GroupedMatmul.apply(<span class="built_in">tuple</span>(inputs + others)))</span><br><span class="line">out = torch.ops.pyg.segment_matmul(inputs, ptr, other)</span><br></pre></td></tr></table></figure>
+
+<p>PyTorch 使用<strong>动态分派机制</strong>来根据当前的设备（CPU或CUDA）选择合适的实现。<code>inputs</code> 和 <code>other</code> 的 <code>.device</code> 属性决定操作所需的设备类型（CPU 或 CUDA）。</p>
+<h4 id="2-3-1-matmul-cpp"><a href="#2-3-1-matmul-cpp" class="headerlink" title="2.3.1 matmul.cpp"></a>2.3.1 matmul.cpp</h4><p>接口绑定：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">TORCH_LIBRARY_FRAGMENT(pyg, m) &#123;</span><br><span class="line">  m.<span class="keyword">def</span>(TORCH_SELECTIVE_SCHEMA(</span><br><span class="line">      <span class="string">&quot;pyg::grouped_matmul(Tensor[] input, Tensor[] other) -&gt; Tensor[]&quot;</span>));</span><br><span class="line">  m.<span class="keyword">def</span>(TORCH_SELECTIVE_SCHEMA(</span><br><span class="line">      <span class="string">&quot;pyg::segment_matmul(Tensor input, Tensor ptr, Tensor other) -&gt; Tensor&quot;</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="2-3-2-cpu-matmul-cpp以及autograd-matmul-cpp"><a href="#2-3-2-cpu-matmul-cpp以及autograd-matmul-cpp" class="headerlink" title="2.3.2 cpu&#x2F;matmul.cpp以及autograd&#x2F;matmul.cpp"></a>2.3.2 cpu&#x2F;matmul.cpp以及autograd&#x2F;matmul.cpp</h4><p>实现绑定如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">TORCH_LIBRARY_IMPL</span>(pyg, CPU, m) &#123;</span><br><span class="line">  m.<span class="built_in">impl</span>(<span class="built_in">TORCH_SELECTIVE_NAME</span>(<span class="string">&quot;pyg::grouped_matmul&quot;</span>),</span><br><span class="line">         <span class="built_in">TORCH_FN</span>(grouped_matmul_kernel));</span><br><span class="line">  m.<span class="built_in">impl</span>(<span class="built_in">TORCH_SELECTIVE_NAME</span>(<span class="string">&quot;pyg::segment_matmul&quot;</span>),</span><br><span class="line">         <span class="built_in">TORCH_FN</span>(segment_matmul_kernel));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">TORCH_LIBRARY_IMPL</span>(pyg, Autograd, m) &#123;</span><br><span class="line">  m.<span class="built_in">impl</span>(<span class="built_in">TORCH_SELECTIVE_NAME</span>(<span class="string">&quot;pyg::segment_matmul&quot;</span>),</span><br><span class="line">         <span class="built_in">TORCH_FN</span>(segment_matmul_autograd));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先只有分段矩阵乘法需要自动求导，如果运算在cpu上进行则直接调用c++实现的接口。</p>
+<h4 id="2-3-3-cuda-matmul-cu"><a href="#2-3-3-cuda-matmul-cu" class="headerlink" title="2.3.3 cuda&#x2F;matmul.cu"></a>2.3.3 cuda&#x2F;matmul.cu</h4><p>实现绑定如下</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">TORCH_LIBRARY_IMPL</span>(pyg, CUDA, m) &#123;</span><br><span class="line">  m.<span class="built_in">impl</span>(<span class="built_in">TORCH_SELECTIVE_NAME</span>(<span class="string">&quot;pyg::grouped_matmul&quot;</span>),</span><br><span class="line">         <span class="built_in">TORCH_FN</span>(grouped_matmul_kernel));</span><br><span class="line">  m.<span class="built_in">impl</span>(<span class="built_in">TORCH_SELECTIVE_NAME</span>(<span class="string">&quot;pyg::segment_matmul&quot;</span>),</span><br><span class="line">         <span class="built_in">TORCH_FN</span>(segment_matmul_kernel));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果运算在gpu上进行则直接调用cuda实现的接口。</p>
+<h2 id="3-编译及打包"><a href="#3-编译及打包" class="headerlink" title="3. 编译及打包"></a>3. 编译及打包</h2><h3 id="3-1-主要文件"><a href="#3-1-主要文件" class="headerlink" title="3.1 主要文件"></a>3.1 主要文件</h3><h4 id="setup-py"><a href="#setup-py" class="headerlink" title="setup.py"></a><code>setup.py</code></h4><ul>
+<li>提供了 Python 包的安装配置。</li>
+<li>定义了依赖项、构建选项以及如何通过 CMake 构建本地扩展模块。</li>
+<li>包含对 <strong>MKL</strong>（Math Kernel Library）、<strong>CUDA</strong> 和 <strong>Triton</strong> 等高性能计算工具的支持。</li>
+</ul>
+<h4 id="CMakeLists-txt"><a href="#CMakeLists-txt" class="headerlink" title="CMakeLists.txt"></a><code>CMakeLists.txt</code></h4><ul>
+<li>定义了 CMake 构建流程。</li>
+<li>支持多种可选功能，如测试、基准测试、CUDA 支持以及 Python 绑定。</li>
+<li>配置了外部依赖（如 parallel-hashmap 和 METIS）。</li>
+</ul>
+<h3 id="3-2-setup-py"><a href="#3-2-setup-py" class="headerlink" title="3.2 setup.py()"></a>3.2 setup.py()</h3><p><strong>依赖定义和版本信息</strong></p>
+<ul>
+<li><code>__version__</code> 定义了项目版本号（当前为 0.4.0）。</li>
+<li><code>install_requires</code> 动态添加了对 <code>MKL</code> 的依赖（如 <code>mkl-include</code> 和 <code>mkl-static</code>），前提是启用了 <code>USE_MKL_BLAS</code> 环境变量。</li>
+<li>提供了额外依赖项，如：<ul>
+<li><code>triton_requires</code>：为 Triton 提供支持。</li>
+<li><code>test_requires</code>：测试相关依赖。</li>
+<li><code>dev_requires</code>：开发阶段使用的依赖（如 <code>pre-commit</code>）。</li>
+</ul>
+</li>
+</ul>
+<p><strong>CMake 的集成</strong></p>
+<ul>
+<li><code>CMakeExtension</code>类：<ul>
+<li>用于定义需要使用 CMake 构建的扩展模块（此处为 <code>libpyg</code>）。</li>
+</ul>
+</li>
+<li><code>CMakeBuild</code>类：<ul>
+<li>定制 <code>build_ext</code> 阶段，使用 CMake 生成构建系统并执行编译。</li>
+<li>自动检测并设置 CUDA、MKL、Ninja 等选项，控制构建行为。</li>
+<li>支持通过环境变量配置构建类型（<code>DEBUG</code>、<code>RELEASE</code> 等）。</li>
+</ul>
+</li>
+</ul>
+<p><strong>环境变量支持</strong></p>
+<ul>
+<li><code>USE_MKL_BLAS=1</code>：启用 MKL 支持（需要 PyTorch 自身也支持 MKL）。</li>
+<li><code>FORCE_CUDA=1</code>：强制启用 CUDA 支持，无视自动检测结果。</li>
+<li><code>DEBUG</code> 或 <code>REL_WITH_DEB_INFO</code>：控制编译模式。</li>
+<li><code>FORCE_NINJA=1</code>：强制使用 Ninja 构建工具。</li>
+</ul>
+<p><strong>模块构建与安装</strong></p>
+<ul>
+<li>扩展模块 <code>libpyg</code> 使用 CMake 构建，最终结果以 Python 可加载的 <code>.so</code> 文件形式输出。</li>
+</ul>
+<p><strong>其他功能</strong></p>
+<ul>
+<li>提供警告信息，如缺少 Ninja 会影响构建速度。</li>
+<li>动态解析 PyTorch 的配置，确定 MKL 的版本和支持状态</li>
+</ul>
+<h3 id="3-3-CmakeLists-txt"><a href="#3-3-CmakeLists-txt" class="headerlink" title="3.3 CmakeLists.txt"></a>3.3 CmakeLists.txt</h3><h4 id="3-3-1-基础设置"><a href="#3-3-1-基础设置" class="headerlink" title="3.3.1 基础设置"></a>3.3.1 基础设置</h4><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">3.15</span>)</span><br><span class="line"><span class="keyword">project</span>(pyg)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_STANDARD <span class="number">17</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_CXX_STANDARD_REQUIRED <span class="keyword">ON</span>)</span><br><span class="line"><span class="keyword">set</span>(CMAKE_SHARED_LIBRARY_PREFIX <span class="string">&quot;lib&quot;</span>)</span><br><span class="line"><span class="keyword">set</span>(PYG_VERSION <span class="number">0.4</span>.<span class="number">0</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong><code>cmake_minimum_required</code></strong>: 指定支持的最低 CMake 版本为 3.15。</p>
+<p><strong><code>project</code></strong>: 定义工程名称为 <code>pyg</code>。</p>
+<p><strong><code>set(CMAKE_CXX_STANDARD 17)</code></strong>: 使用 C++17 标准。</p>
+<p><strong><code>set(CMAKE_SHARED_LIBRARY_PREFIX &quot;lib&quot;)</code></strong>: 动态库文件前缀设置为 <code>lib</code>（如 <code>libpyg.so</code>）。</p>
+<p><strong><code>set(PYG_VERSION 0.4.0)</code></strong>: 定义项目的版本号。</p>
+<h4 id="3-3-2-构建选项"><a href="#3-3-2-构建选项" class="headerlink" title="3.3.2 构建选项"></a>3.3.2 构建选项</h4><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">option</span>(BUILD_TEST <span class="string">&quot;Enable testing&quot;</span> <span class="keyword">OFF</span>)</span><br><span class="line"><span class="keyword">option</span>(BUILD_BENCHMARK <span class="string">&quot;Enable benchmarks&quot;</span> <span class="keyword">OFF</span>)</span><br><span class="line"><span class="keyword">option</span>(WITH_COV <span class="string">&quot;Enable code coverage&quot;</span> <span class="keyword">OFF</span>)</span><br><span class="line"><span class="keyword">option</span>(USE_PYTHON <span class="string">&quot;Link to Python when building&quot;</span> <span class="keyword">OFF</span>)</span><br><span class="line"><span class="keyword">option</span>(WITH_CUDA <span class="string">&quot;Enable CUDA support&quot;</span> <span class="keyword">OFF</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong><code>option</code></strong>: 定义可选配置项，后面是选项说明和默认值。</p>
+<ul>
+<li><code>BUILD_TEST</code>: 是否启用测试（默认关闭）。</li>
+<li><code>BUILD_BENCHMARK</code>: 是否启用性能基准测试。</li>
+<li><code>WITH_COV</code>: 是否开启代码覆盖率分析。</li>
+<li><code>USE_PYTHON</code>: 是否支持 Python 绑定。</li>
+<li><code>WITH_CUDA</code>: 是否启用 CUDA 支持。</li>
+</ul>
+<h4 id="3-3-3-ABI设置"><a href="#3-3-3-ABI设置" class="headerlink" title="3.3.3 ABI设置"></a>3.3.3 ABI设置</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span>(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -D_GLIBCXX_USE_CXX11_ABI=0&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>设置 <code>CXX11 ABI</code> 的兼容性选项，确保编译的二进制与依赖库（如 PyTorch）兼容。</p>
+<h4 id="3-3-4-MKL设置"><a href="#3-3-4-MKL设置" class="headerlink" title="3.3.4 MKL设置"></a>3.3.4 MKL设置</h4><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(WITH_MKL_BLAS <span class="number">0</span>)</span><br><span class="line"><span class="keyword">if</span>(USE_MKL_BLAS <span class="keyword">AND</span> <span class="keyword">DEFINED</span> BLAS_INCLUDE_DIR)</span><br><span class="line">  <span class="keyword">find_file</span>(MKL_INCLUDE_FOUND mkl.h <span class="variable">$&#123;BLAS_INCLUDE_DIR&#125;</span> NO_DEFAULT_PATH)</span><br><span class="line">  <span class="keyword">if</span>(MKL_INCLUDE_FOUND)</span><br><span class="line">    <span class="keyword">set</span>(WITH_MKL_BLAS <span class="number">1</span>)</span><br><span class="line">  <span class="keyword">else</span>()</span><br><span class="line">    <span class="keyword">if</span>(WITH_COV)</span><br><span class="line">      <span class="keyword">message</span>(FATAL_ERROR <span class="string">&quot;The mkl.h file was not found - pass the correct directory or set USE_MKL_BLAS=OFF.&quot;</span>)</span><br><span class="line">    <span class="keyword">else</span>()</span><br><span class="line">      <span class="keyword">message</span>(WARNING <span class="string">&quot;The mkl.h file was not found - building pyg-lib without MKL BLAS support.&quot;</span>)</span><br><span class="line">    <span class="keyword">endif</span>()</span><br><span class="line">  <span class="keyword">endif</span>()</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong><code>USE_MKL_BLAS</code></strong> 和 <code>BLAS_INCLUDE_DIR</code>:</p>
+<ul>
+<li>如果启用 MKL 支持，检查是否能找到 <code>mkl.h</code> 头文件。</li>
+<li>找到后，启用 MKL 支持（<code>WITH_MKL_BLAS=1</code>）；否则发出警告或终止。</li>
+</ul>
+<h4 id="3-3-5-生成配置文件"><a href="#3-3-5-生成配置文件" class="headerlink" title="3.3.5 生成配置文件"></a>3.3.5 <strong>生成配置文件</strong></h4><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">configure_file</span>(<span class="variable">$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;</span>/pyg_lib/csrc/config.h.in <span class="string">&quot;$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;/pyg_lib/csrc/config.h&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>使用模板文件 <code>config.h.in</code> 生成 <code>config.h</code>，根据构建选项动态设置头文件内容。</li>
+</ul>
+<h4 id="3-3-6-Python-支持"><a href="#3-3-6-Python-支持" class="headerlink" title="3.3.6 Python 支持"></a>3.3.6 Python 支持</h4><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (USE_PYTHON)</span><br><span class="line">  <span class="keyword">cmake_policy</span>(<span class="keyword">SET</span> CMP0094 NEW)</span><br><span class="line">  <span class="keyword">set</span>(Python3_FIND_REGISTRY <span class="string">&quot;LAST&quot;</span>)</span><br><span class="line">  <span class="keyword">set</span>(Python3_FIND_FRAMEWORK <span class="string">&quot;LAST&quot;</span>)</span><br><span class="line">  <span class="keyword">set</span>(Python3_FIND_VIRTUALENV <span class="string">&quot;FIRST&quot;</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">add_definitions</span>(-DUSE_PYTHON)</span><br><span class="line">  <span class="keyword">find_package</span>(Python3 REQUIRED COMPONENTS Development)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>USE_PYTHON</code><ul>
+<li>启用后，使用 <code>find_package</code> 查找 Python 开发工具链。</li>
+<li>定义了如何优先查找虚拟环境中的 Python 和 Python 框架。</li>
+<li>添加 <code>-DUSE_PYTHON</code> 宏，用于 C++ 源码中开启相关功能。</li>
+</ul>
+</li>
+</ul>
+<h4 id="3-3-7-CUDA-支持"><a href="#3-3-7-CUDA-支持" class="headerlink" title="3.3.7 CUDA 支持"></a>3.3.7 CUDA 支持</h4><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(WITH_CUDA)</span><br><span class="line">  <span class="keyword">enable_language</span>(CUDA)</span><br><span class="line">  <span class="keyword">add_definitions</span>(-DWITH_CUDA)</span><br><span class="line">  <span class="keyword">set</span>(CMAKE_CUDA_FLAGS <span class="string">&quot;$&#123;CMAKE_CUDA_FLAGS&#125; --expt-relaxed-constexpr&quot;</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">NOT</span> <span class="string">&quot;$ENV&#123;EXTERNAL_CUTLASS_INCLUDE_DIR&#125;&quot;</span> <span class="keyword">STREQUAL</span> <span class="string">&quot;&quot;</span>)</span><br><span class="line">    <span class="keyword">include_directories</span>($ENV&#123;EXTERNAL_CUTLASS_INCLUDE_DIR&#125;)</span><br><span class="line">  <span class="keyword">else</span>()</span><br><span class="line">    <span class="keyword">set</span>(CUTLASS_DIR third_party/cutlass/<span class="keyword">include</span>)</span><br><span class="line">    <span class="keyword">include_directories</span>(<span class="variable">$&#123;CUTLASS_DIR&#125;</span>)</span><br><span class="line">    <span class="keyword">set</span>(CUTLASS_UTIL_DIR third_party/cutlass/tools/util/<span class="keyword">include</span>)</span><br><span class="line">    <span class="keyword">include_directories</span>(<span class="variable">$&#123;CUTLASS_UTIL_DIR&#125;</span>)</span><br><span class="line">  <span class="keyword">endif</span>()</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong><code>enable_language(CUDA)</code></strong>: 启用 CUDA 编译器。</p>
+<p><strong><code>add_definitions(-DWITH_CUDA)</code></strong>: 添加 CUDA 支持的预定义宏。</p>
+<p><strong><code>CUTLASS</code></strong>: 设置 CUTLASS 库路径，这是一个高效的矩阵计算库，CUDA 内核依赖它。</p>
+<h4 id="3-3-8-源码收集和目标构建"><a href="#3-3-8-源码收集和目标构建" class="headerlink" title="3.3.8 源码收集和目标构建"></a>3.3.8 源码收集和目标构建</h4><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(CSRC pyg_lib/csrc)</span><br><span class="line"><span class="keyword">file</span>(GLOB_RECURSE ALL_SOURCES <span class="variable">$&#123;CSRC&#125;</span>/*.cpp)</span><br><span class="line"><span class="keyword">if</span> (WITH_CUDA)</span><br><span class="line">  <span class="keyword">file</span>(GLOB_RECURSE ALL_SOURCES <span class="variable">$&#123;ALL_SOURCES&#125;</span> <span class="variable">$&#123;CSRC&#125;</span>/*.cu)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"><span class="keyword">file</span>(GLOB_RECURSE ALL_HEADERS <span class="variable">$&#123;CSRC&#125;</span>/*.h)</span><br><span class="line"><span class="keyword">add_library</span>(<span class="variable">$&#123;PROJECT_NAME&#125;</span> SHARED <span class="variable">$&#123;ALL_SOURCES&#125;</span>)</span><br><span class="line"><span class="keyword">target_include_directories</span>(<span class="variable">$&#123;PROJECT_NAME&#125;</span> PUBLIC <span class="string">&quot;$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">if</span>(MKL_INCLUDE_FOUND)</span><br><span class="line">    <span class="keyword">target_include_directories</span>(<span class="variable">$&#123;PROJECT_NAME&#125;</span> PRIVATE <span class="variable">$&#123;BLAS_INCLUDE_DIR&#125;</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong><code>file(GLOB_RECURSE)</code></strong>: 递归收集源码文件，包括 <code>.cpp</code> 和 <code>.cu</code> 文件。</p>
+<p><strong><code>add_library</code></strong>: 创建动态库目标 <code>pyg</code>，并关联所有源码文件。</p>
+<p><strong><code>target_include_directories</code></strong>:</p>
+<ul>
+<li>添加当前目录为头文件路径。</li>
+<li>如果找到 MKL，添加其头文件路径。</li>
+</ul>
+<h4 id="3-3-9-外部依赖"><a href="#3-3-9-外部依赖" class="headerlink" title="3.3.9 外部依赖"></a>3.3.9 外部依赖</h4><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">NOT</span> <span class="string">&quot;$ENV&#123;EXTERNAL_PHMAP_INCLUDE_DIR&#125;&quot;</span> <span class="keyword">STREQUAL</span> <span class="string">&quot;&quot;</span>)</span><br><span class="line">  <span class="keyword">include_directories</span>($ENV&#123;EXTERNAL_PHMAP_INCLUDE_DIR&#125;)</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">  <span class="keyword">set</span>(PHMAP_DIR third_party/parallel-hashmap)</span><br><span class="line">  <span class="keyword">target_include_directories</span>(<span class="variable">$&#123;PROJECT_NAME&#125;</span> PRIVATE <span class="variable">$&#123;PHMAP_DIR&#125;</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong><code>parallel-hashmap</code></strong>: 检查 <code>parallel-hashmap</code> 的路径，优先使用环境变量提供的路径，否则使用 <code>third_party</code> 中的副本。</p>
+<h4 id="3-3-10-平台特定设置"><a href="#3-3-10-平台特定设置" class="headerlink" title="3.3.10 平台特定设置"></a>3.3.10 平台特定设置</h4><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (MSVC)</span><br><span class="line">  <span class="keyword">set</span>(CMAKE_C_FLAGS <span class="string">&quot;$&#123;CMAKE_C_FLAGS&#125; /DIDXTYPEWIDTH=64 /DREALTYPEWIDTH=32&quot;</span>)</span><br><span class="line">  <span class="keyword">set</span>(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; /DIDXTYPEWIDTH=64 /DREALTYPEWIDTH=32&quot;</span>)</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">  <span class="keyword">set</span>(CMAKE_C_FLAGS <span class="string">&quot;$&#123;CMAKE_C_FLAGS&#125; -DIDXTYPEWIDTH=64 -DREALTYPEWIDTH=32&quot;</span>)</span><br><span class="line">  <span class="keyword">set</span>(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -DIDXTYPEWIDTH=64 -DREALTYPEWIDTH=32&quot;</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>设置索引宽度和实数类型宽度，支持 64 位索引和 32 位浮点运算。</p>
+<h4 id="3-3-11-METIS-集成"><a href="#3-3-11-METIS-集成" class="headerlink" title="3.3.11 METIS 集成"></a>3.3.11 METIS 集成</h4><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">NOT</span> MSVC)</span><br><span class="line">  <span class="keyword">set</span>(METIS_DIR third_party/METIS)</span><br><span class="line">  <span class="keyword">target_include_directories</span>(<span class="variable">$&#123;PROJECT_NAME&#125;</span> PRIVATE <span class="variable">$&#123;METIS_DIR&#125;</span>/<span class="keyword">include</span>)</span><br><span class="line">  <span class="keyword">set</span>(GKLIB_PATH <span class="string">&quot;$&#123;METIS_DIR&#125;/GKlib&quot;</span>)</span><br><span class="line">  <span class="keyword">include</span>(<span class="variable">$&#123;GKLIB_PATH&#125;</span>/GKlibSystem.cmake)</span><br><span class="line">  <span class="keyword">include_directories</span>(<span class="variable">$&#123;GKLIB_PATH&#125;</span>)</span><br><span class="line">  <span class="keyword">include_directories</span>(<span class="string">&quot;$&#123;METIS_DIR&#125;/include&quot;</span>)</span><br><span class="line">  <span class="keyword">add_subdirectory</span>(<span class="string">&quot;$&#123;METIS_DIR&#125;/libmetis&quot;</span>)</span><br><span class="line">  <span class="keyword">target_link_libraries</span>(<span class="variable">$&#123;PROJECT_NAME&#125;</span> PRIVATE metis)</span><br><span class="line"><span class="keyword">endif</span>()</span><br></pre></td></tr></table></figure>
+
+<p>metis外部工具集成</p>
+<h4 id="3-3-12-PyTorch-和-OpenMP"><a href="#3-3-12-PyTorch-和-OpenMP" class="headerlink" title="3.3.12 PyTorch 和 OpenMP"></a>3.3.12 PyTorch 和 OpenMP</h4><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">find_package</span>(Torch REQUIRED)</span><br><span class="line"><span class="keyword">message</span>(<span class="string">&quot;-- TORCH_LIBRARIES: $&#123;TORCH_LIBRARIES&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">target_link_libraries</span>(<span class="variable">$&#123;PROJECT_NAME&#125;</span> PRIVATE <span class="variable">$&#123;TORCH_LIBRARIES&#125;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">find_package</span>(OpenMP)</span><br><span class="line"><span class="keyword">if</span>(OpenMP_CXX_FOUND)</span><br><span class="line">  <span class="keyword">target_link_libraries</span>(<span class="variable">$&#123;PROJECT_NAME&#125;</span> PRIVATE OpenMP::OpenMP_CXX)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>查找并链接 PyTorch 和 OpenMP 库。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%9B%BE%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" class="category-chain-item">图神经网络</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E7%AC%94%E8%AE%B0/" class="print-no-link">#笔记</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>pyg-lib调用分析</div>
+      <div>http://moyoo0.github.io/2024/12/11/pyg-lib调用分析/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>moyoo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>December 11, 2024</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/12/16/Pytorch%E6%89%A9%E5%B1%95%E6%96%B9%E5%BC%8F%E6%80%BB%E7%BB%93/" title="">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile"></span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/12/03/pyg-lib%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" title="pyg-lib代码分析">
+                        <span class="hidden-mobile">pyg-lib代码分析</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"FyJriWj3B2ezdRzT1ycTlHTK-gzGzoHsz","appKey":"qxYsNPBUjdgt7F2Io9tPsZvr","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"https://fyjriwj3.lc-cn-n1-shared.com","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        Views: 
+        <span id="leancloud-site-pv"></span>
+        
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        Visitors: 
+        <span id="leancloud-site-uv"></span>
+        
+      </span>
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
