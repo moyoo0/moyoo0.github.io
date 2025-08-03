@@ -27,7 +27,7 @@
 <meta property="og:description" content="MCP Server MCP Server 是大语言模型（LLM）获取外部能力和数据的一套标准化服务。它完全受控于调用方，只负责执行指令，不具备主动决策或推理能力。其功能涵盖多种工具，例如 Fetch MCP Server 用于网络抓取，而 Google Drive MCP Server 则可用于文件访问。简而言之，它是一个被动的执行者，而非主动的决策者。 sequenceDiagram">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-08-03T15:03:33.000Z">
-<meta property="article:modified_time" content="2025-08-03T15:36:28.284Z">
+<meta property="article:modified_time" content="2025-08-03T15:41:08.472Z">
 <meta property="article:author" content="moyoo">
 <meta property="article:tag" content="大模型应用开发">
 <meta name="twitter:card" content="summary_large_image">
@@ -298,8 +298,11 @@
             
               <div class="markdown-body">
                 
-                <h2 id="MCP-Server">MCP Server</h2>
-<p>MCP Server 是大语言模型（LLM）获取外部能力和数据的一套标准化服务。它完全受控于调用方，只负责执行指令，不具备主动决策或推理能力。其功能涵盖多种工具，例如 Fetch MCP Server 用于网络抓取，而 Google Drive MCP Server 则可用于文件访问。简而言之，它是一个被动的执行者，而非主动的决策者。</p>
+                <h2 id="mcp-server">MCP Server</h2>
+<p>MCP Server
+是大语言模型（LLM）获取外部能力和数据的一套标准化服务。它完全受控于调用方，只负责执行指令，不具备主动决策或推理能力。其功能涵盖多种工具，例如
+Fetch MCP Server 用于网络抓取，而 Google Drive MCP Server
+则可用于文件访问。简而言之，它是一个被动的执行者，而非主动的决策者。</p>
 <pre class="mermaid">sequenceDiagram
     participant User
     participant MCP-Client
@@ -314,9 +317,11 @@
     MCP-Client->>+LLM: 传递工具执行结果[2]
     LLM-->>-MCP-Client: 生成自然语言响应
     MCP-Client-->>-User: 返回最终响应</pre>
-<p>例如我们基于 spring-ai 定义一个自动发布mcp-server，打成 jar 包，其通过 stdio 方式与 LLM 进行交互。</p>
-<h2 id="Function-Call">Function Call</h2>
-<p>Function Call 是一种强大的机制，它赋予了大型语言模型（LLM）直接调用外部函数的能力，这就像为模型配备了一把“瑞士军刀”。它的核心思想是让模型能够理解并生成调用特定函数所需的参数，并将函数执行的结果融入自身的响应中。</p>
+<p>例如我们基于 spring-ai 定义一个自动发布mcp-server，打成 jar
+包，其通过 stdio 方式与 LLM 进行交互。</p>
+<h2 id="function-call">Function Call</h2>
+<p>Function Call
+是一种强大的机制，它赋予了大型语言模型（LLM）直接调用外部函数的能力，这就像为模型配备了一把“瑞士军刀”。它的核心思想是让模型能够理解并生成调用特定函数所需的参数，并将函数执行的结果融入自身的响应中。</p>
 <pre class="mermaid">sequenceDiagram
     participant 用户
     participant 大模型
@@ -332,9 +337,14 @@ deactivate 外部函数
 大模型->>大模型: 数据格式转换
 大模型-->>用户: 整合回复"北京今日18摄氏度, 湿度60%"
 deactivate 大模型</pre>
-<p>Function Call 的最大特点在于，它是一种“代码级”的扩展，其紧密集成于模型本身的训练和部署流程中。它不是一个独立的外部服务，而是模型能力的一部分，因此得名“瑞士军刀”，因为它以一种灵活、集成的方式，极大地扩展了模型的应用范围和实用性。</p>
-<h2 id="Agent">Agent</h2>
-<p>Agent 是一种具备高度自主性的 AI 实体。它能够独立理解复杂的目标，并将其分解为一系列可执行的子任务。为了完成这些任务，Agent 能够智能地调用各种外部工具，例如利用 MCP Server 访问外部数据源，或通过 Function Call 执行特定代码。这种强大的自主规划和工具调用能力，使得 Agent 能够处理诸如“撰写AI趋势报告”这类需要多步操作和跨工具协作的复杂任务。</p>
+<p>Function Call
+的最大特点在于，它是一种“代码级”的扩展，其紧密集成于模型本身的训练和部署流程中。它不是一个独立的外部服务，而是模型能力的一部分，因此得名“瑞士军刀”，因为它以一种灵活、集成的方式，极大地扩展了模型的应用范围和实用性。</p>
+<h2 id="agent">Agent</h2>
+<p>Agent 是一种具备高度自主性的 AI
+实体。它能够独立理解复杂的目标，并将其分解为一系列可执行的子任务。为了完成这些任务，Agent
+能够智能地调用各种外部工具，例如利用 MCP Server 访问外部数据源，或通过
+Function Call 执行特定代码。这种强大的自主规划和工具调用能力，使得 Agent
+能够处理诸如“撰写AI趋势报告”这类需要多步操作和跨工具协作的复杂任务。</p>
 <p>以下为基于Agent 完成总结知乎关于 AI 最新讨论任务的例子：</p>
 <pre class="mermaid">sequenceDiagram
     participant User
