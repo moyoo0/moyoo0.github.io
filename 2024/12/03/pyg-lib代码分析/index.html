@@ -410,13 +410,20 @@ mjx-container[display="true"] + br {
             
               <div class="markdown-body">
                 
-                <h2 id="1-PyG-lib">1. PyG-lib</h2>
-<p><code>pyg_lib</code> 是一个为 PyG（PyTorch Geometric）和 PyTorch 设计的底层图神经网络库。</p>
+                <h2 id="pyg-lib">1. PyG-lib</h2>
+<p><code>pyg_lib</code> 是一个为 PyG（PyTorch Geometric）和 PyTorch
+设计的底层图神经网络库。</p>
 <p>该库提供以下主要功能：</p>
 <ul>
-<li><strong><code>cuda_version()</code></strong>：返回编译 <code>pyg_lib</code> 时所使用的 CUDA 版本。</li>
-<li><strong><code>get_home_dir()</code></strong>：获取用于存储所有 <code>pyg-lib</code> 数据的缓存目录。如果未调用 <code>set_home_dir()</code>，则路径由环境变量 <code>$PYG_LIB_HOME</code> 指定，默认为 <code>~/.cache/pyg_lib</code>。</li>
-<li><strong><code>set_home_dir(path)</code></strong>：设置用于存储所有 <code>pyg-lib</code> 数据的缓存目录。参数 <code>path</code> 是本地文件夹的路径。</li>
+<li><strong><code>cuda_version()</code></strong>：返回编译
+<code>pyg_lib</code> 时所使用的 CUDA 版本。</li>
+<li><strong><code>get_home_dir()</code></strong>：获取用于存储所有
+<code>pyg-lib</code> 数据的缓存目录。如果未调用
+<code>set_home_dir()</code>，则路径由环境变量 <code>$PYG_LIB_HOME</code>
+指定，默认为 <code>~/.cache/pyg_lib</code>。</li>
+<li><strong><code>set_home_dir(path)</code></strong>：设置用于存储所有
+<code>pyg-lib</code> 数据的缓存目录。参数 <code>path</code>
+是本地文件夹的路径。</li>
 </ul>
 <p>此外，<code>pyg_lib</code> 还包含以下子模块：</p>
 <ul>
@@ -425,212 +432,354 @@ mjx-container[display="true"] + br {
 <li><strong><code>pyg_lib.partition</code></strong>：提供图分区功能。</li>
 </ul>
 <p>这些功能和模块为开发者提供了构建和操作图神经网络的基础工具。文档主要对pyg-lib的benchmark以及test目录下的demo进行代码分析。</p>
-<h2 id="2-ops">2. ops</h2>
-<h3 id="2-1-index-sort">2.1 index_sort()</h3>
+<h2 id="ops">2. ops</h2>
+<h3 id="index_sort">2.1 index_sort()</h3>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">index_sort(inputs: Tensor, max_value: <span class="hljs-type">Optional</span>[<span class="hljs-built_in">int</span>] = <span class="hljs-literal">None</span>) → <span class="hljs-type">Tuple</span>[Tensor, Tensor]<br><br></code></pre></td></tr></table></figure>
 <h4 id="功能描述"><strong>功能描述</strong></h4>
-<p>将 <code>inputs</code> 张量的元素按升序排序。要求 <code>inputs</code> 是一维的，并且只包含正整数值。如果提供了 <code>max_value</code>，底层算法可以使用该值来提高性能。</p>
+<p>将 <code>inputs</code> 张量的元素按升序排序。要求 <code>inputs</code>
+是一维的，并且只包含正整数值。如果提供了
+<code>max_value</code>，底层算法可以使用该值来提高性能。</p>
 <h4 id="输入参数"><strong>输入参数</strong></h4>
 <ul>
 <li><code>inputs</code>：一个一维张量（<code>Tensor</code>），其元素应为正整数。</li>
-<li><code>max_value</code>：一个可选的整数（<code>Optional[int]</code>），表示输入张量中可能的最大值。默认值为 <code>None</code>。</li>
+<li><code>max_value</code>：一个可选的整数（<code>Optional[int]</code>），表示输入张量中可能的最大值。默认值为
+<code>None</code>。</li>
 </ul>
 <h4 id="返回值"><strong>返回值</strong></h4>
 <ul>
 <li>返回一个元组，包含两个张量：
-<ol>
-<li><strong>排序后的张量</strong>（<code>Tensor</code>），即按升序排序后的 <code>inputs</code>。</li>
+<ol type="1">
+<li><strong>排序后的张量</strong>（<code>Tensor</code>），即按升序排序后的
+<code>inputs</code>。</li>
 <li><strong>排序索引</strong>（<code>Tensor</code>），表示每个元素在排序前的位置。</li>
-</ol>
-</li>
+</ol></li>
 </ul>
 <h4 id="具体实现"><strong>具体实现</strong></h4>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">index_sort</span>(<span class="hljs-params"></span><br><span class="hljs-params">    inputs: Tensor,</span><br><span class="hljs-params">    max_value: <span class="hljs-type">Optional</span>[<span class="hljs-built_in">int</span>] = <span class="hljs-literal">None</span>,</span><br><span class="hljs-params"></span>) -&gt; <span class="hljs-type">Tuple</span>[Tensor, Tensor]:<br>    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> inputs.is_cpu:<br>        <span class="hljs-keyword">return</span> torch.sort(inputs)<br>    <span class="hljs-keyword">return</span> torch.ops.pyg.index_sort(inputs, max_value)<br></code></pre></td></tr></table></figure>
-<p>根据 <code>inputs</code> 所在的设备（CPU 或 GPU），选择不同的排序实现。如果 <code>inputs</code> 存在于 GPU 上，直接使用 PyTorch 的内置排序；如果 <code>inputs</code> 在 CPU 上，则使用 PyG 自定义的排序操作，可能是为 CPU 优化的版本。这一部分具体用c++实现。</p>
-<h3 id="2-2-segment-matmul">2.2 segment_matmul()</h3>
+<p>根据 <code>inputs</code> 所在的设备（CPU 或
+GPU），选择不同的排序实现。如果 <code>inputs</code> 存在于 GPU
+上，直接使用 PyTorch 的内置排序；如果 <code>inputs</code> 在 CPU
+上，则使用 PyG 自定义的排序操作，可能是为 CPU
+优化的版本。这一部分具体用c++实现。</p>
+<h3 id="segment_matmul">2.2 segment_matmul()</h3>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">segment_matmul</span>(<span class="hljs-params"></span><br><span class="hljs-params">    inputs: Tensor,</span><br><span class="hljs-params">    ptr: Tensor,</span><br><span class="hljs-params">    other: Tensor,</span><br><span class="hljs-params">    bias: <span class="hljs-type">Optional</span>[Tensor] = <span class="hljs-literal">None</span>,</span><br><span class="hljs-params"></span>) -&gt; Tensor:<br>   <br></code></pre></td></tr></table></figure>
-<h4 id="功能描述-2"><strong>功能描述</strong></h4>
-<p><code>segment_matmul</code> 函数实现了一个按段执行的矩阵乘法操作。它将输入的二维矩阵 <code>inputs</code> 按照 <code>ptr</code> 指定的分段信息划分成多个段，并与三维矩阵 <code>other</code> 中的每个分段进行矩阵乘法，最终将所有分段的结果拼接起来，返回一个二维输出矩阵。这个操作适用于需要按分组（或段）进行矩阵计算的情况。</p>
+<h4 id="功能描述-1"><strong>功能描述</strong></h4>
+<p><code>segment_matmul</code>
+函数实现了一个按段执行的矩阵乘法操作。它将输入的二维矩阵
+<code>inputs</code> 按照 <code>ptr</code>
+指定的分段信息划分成多个段，并与三维矩阵 <code>other</code>
+中的每个分段进行矩阵乘法，最终将所有分段的结果拼接起来，返回一个二维输出矩阵。这个操作适用于需要按分组（或段）进行矩阵计算的情况。</p>
 <p>函数的特点是：</p>
 <ul>
 <li>它通过一个优化的内核来实现分段矩阵乘法，能有效并行计算多个分段。</li>
-<li>支持可选的偏置项 <code>bias</code>，在计算每个分段的矩阵乘法结果时加上偏置。</li>
+<li>支持可选的偏置项
+<code>bias</code>，在计算每个分段的矩阵乘法结果时加上偏置。</li>
 </ul>
-<h4 id="输入参数-2"><strong>输入参数</strong></h4>
-<p><strong><code>inputs</code></strong> (Tensor)：一个二维张量，形状为 <code>[N, K]</code>，表示左操作数。<code>N</code> 是样本数量，<code>K</code> 是每个样本的特征维度。</p>
-<p><strong><code>ptr</code></strong> (Tensor)：一个一维张量，形状为 <code>[B + 1]</code>，表示分段的边界。<code>ptr[i]</code> 和 <code>ptr[i + 1]</code> 之间的元素属于第 <code>i</code> 个分段。<code>B</code> 是分段的数量。</p>
-<p><strong><code>other</code></strong> (Tensor)：一个三维张量，形状为 <code>[B, K, M]</code>，表示右操作数。<code>B</code> 个分段中的每个分段是一个 <code>K x M</code> 的矩阵，用来与 <code>inputs</code> 的每个分段进行矩阵乘法。</p>
-<p><strong><code>bias</code></strong> (Optional[Tensor])：一个可选的二维张量，形状为 <code>[B, M]</code>，表示每个分段的偏置项。如果不为 <code>None</code>，则在每个分段的结果中加上相应的偏置。</p>
-<h4 id="返回值-2"><strong>返回值</strong></h4>
-<p>返回值是一个二维张量 <code>out</code>，形状为 <code>[N, M]</code>，表示矩阵乘法的最终结果。每个分段的矩阵乘法结果会依次合并在一起，形成一个完整的二维矩阵。</p>
-<p>如果 <code>bias</code> 参数不为 <code>None</code>，则返回的 <code>out</code> 将在每个分段的结果上加上对应的偏置。</p>
-<h4 id="具体实现-2"><strong>具体实现</strong></h4>
+<h4 id="输入参数-1"><strong>输入参数</strong></h4>
+<p><strong><code>inputs</code></strong> (Tensor)：一个二维张量，形状为
+<code>[N, K]</code>，表示左操作数。<code>N</code>
+是样本数量，<code>K</code> 是每个样本的特征维度。</p>
+<p><strong><code>ptr</code></strong> (Tensor)：一个一维张量，形状为
+<code>[B + 1]</code>，表示分段的边界。<code>ptr[i]</code> 和
+<code>ptr[i + 1]</code> 之间的元素属于第 <code>i</code>
+个分段。<code>B</code> 是分段的数量。</p>
+<p><strong><code>other</code></strong> (Tensor)：一个三维张量，形状为
+<code>[B, K, M]</code>，表示右操作数。<code>B</code>
+个分段中的每个分段是一个 <code>K x M</code> 的矩阵，用来与
+<code>inputs</code> 的每个分段进行矩阵乘法。</p>
+<p><strong><code>bias</code></strong>
+(Optional[Tensor])：一个可选的二维张量，形状为
+<code>[B, M]</code>，表示每个分段的偏置项。如果不为
+<code>None</code>，则在每个分段的结果中加上相应的偏置。</p>
+<h4 id="返回值-1"><strong>返回值</strong></h4>
+<p>返回值是一个二维张量 <code>out</code>，形状为
+<code>[N, M]</code>，表示矩阵乘法的最终结果。每个分段的矩阵乘法结果会依次合并在一起，形成一个完整的二维矩阵。</p>
+<p>如果 <code>bias</code> 参数不为 <code>None</code>，则返回的
+<code>out</code> 将在每个分段的结果上加上对应的偏置。</p>
+<h4 id="具体实现-1"><strong>具体实现</strong></h4>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python">out = torch.ops.pyg.segment_matmul(inputs, ptr, other)<br><span class="hljs-keyword">if</span> bias <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:<br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(ptr.numel() - <span class="hljs-number">1</span>):<br>        out[ptr[i]:ptr[i + <span class="hljs-number">1</span>]] += bias[i]<br><span class="hljs-keyword">return</span> out<br></code></pre></td></tr></table></figure>
-<p>这里调用了 pyg-lib 提供的优化版本的 <code>segment_matmul</code> 操作。该操作会按 <code>ptr</code> 指定的分段边界，将 <code>inputs</code> 中的数据分成多个段，并与 <code>other</code> 中的对应分段进行矩阵乘法。最终将所有分段的计算结果拼接成一个完整的二维矩阵 <code>out</code>。如果提供了偏置 <code>bias</code>，则对每个分段的结果加上对应的偏置项。<code>ptr</code> 张量指定了每个分段的边界，<code>out[ptr[i]:ptr[i + 1]]</code> 获取对应分段的计算结果，并将偏置加到该分段中。</p>
-<h3 id="2-3-grouped-matmul">2.3 grouped_matmul()</h3>
+<p>这里调用了 pyg-lib 提供的优化版本的 <code>segment_matmul</code>
+操作。该操作会按 <code>ptr</code> 指定的分段边界，将 <code>inputs</code>
+中的数据分成多个段，并与 <code>other</code>
+中的对应分段进行矩阵乘法。最终将所有分段的计算结果拼接成一个完整的二维矩阵
+<code>out</code>。如果提供了偏置
+<code>bias</code>，则对每个分段的结果加上对应的偏置项。<code>ptr</code>
+张量指定了每个分段的边界，<code>out[ptr[i]:ptr[i + 1]]</code>
+获取对应分段的计算结果，并将偏置加到该分段中。</p>
+<h3 id="grouped_matmul">2.3 grouped_matmul()</h3>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">grouped_matmul</span>(<span class="hljs-params"></span><br><span class="hljs-params">    inputs: <span class="hljs-type">List</span>[Tensor],</span><br><span class="hljs-params">    others: <span class="hljs-type">List</span>[Tensor],</span><br><span class="hljs-params">    biases: <span class="hljs-type">Optional</span>[<span class="hljs-type">List</span>[Tensor]] = <span class="hljs-literal">None</span>,</span><br><span class="hljs-params"></span>) -&gt; <span class="hljs-type">List</span>[Tensor]:<br></code></pre></td></tr></table></figure>
-<h4 id="功能描述-3"><strong>功能描述</strong></h4>
+<h4 id="功能描述-2"><strong>功能描述</strong></h4>
 <p>该函数执行的是一种按组分配的矩阵乘法，它对多个左操作数（<code>inputs</code>）和右操作数（<code>others</code>）分别进行矩阵乘法，使用并行计算来提高性能。每个组对应一对输入矩阵和输出矩阵，函数在计算时按组来处理。</p>
 <ul>
-<li><strong>输入矩阵</strong>：每一组的左操作数（<code>inputs</code>）都是一个二维矩阵（形状为 <code>[N_i, K_i]</code>），右操作数（<code>others</code>）也是一个二维矩阵（形状为 <code>[K_i, M_i]</code>）。矩阵的维度是动态的，每一组的矩阵维度可以不同。</li>
+<li><strong>输入矩阵</strong>：每一组的左操作数（<code>inputs</code>）都是一个二维矩阵（形状为
+<code>[N_i, K_i]</code>），右操作数（<code>others</code>）也是一个二维矩阵（形状为
+<code>[K_i, M_i]</code>）。矩阵的维度是动态的，每一组的矩阵维度可以不同。</li>
 <li><strong>计算过程</strong>：每一组进行矩阵乘法操作，得到一个输出矩阵。</li>
 <li><strong>并行计算</strong>：该实现通过专门的内核函数并行化处理每一组的矩阵乘法，能够提高性能。</li>
 </ul>
-<h4 id="输入参数-3"><strong>输入参数</strong></h4>
-<p><strong>inputs</strong>（类型：<code>List[Tensor]</code>）：包含多个二维矩阵的列表，表示左操作数，每个矩阵的形状为 <code>[N_i, K_i]</code>，其中 <code>N_i</code> 是行数，<code>K_i</code> 是列数。</p>
-<p><strong>others</strong>（类型：<code>List[Tensor]</code>）：包含多个二维矩阵的列表，表示右操作数，每个矩阵的形状为 <code>[K_i, M_i]</code>，其中 <code>K_i</code> 和左操作数中的 <code>K_i</code> 必须匹配。</p>
-<p><strong>biases</strong>（类型：<code>Optional[List[Tensor]]</code>，默认为 <code>None</code>）：每个输出矩阵的可选偏置项，偏置的形状为 <code>[M_i]</code>，即每个输出矩阵有一个偏置，形状和每个输出矩阵的列数相同。如果提供了偏置，结果矩阵会加上相应的偏置。</p>
-<h4 id="返回值-3"><strong>返回值</strong></h4>
-<p>返回一个包含多个二维矩阵的列表。每个矩阵的形状为 <code>[N_i, M_i]</code>，即每个输出矩阵是输入矩阵和相应的右操作数矩阵相乘得到的结果。</p>
-<h4 id="具体实现-3"><strong>具体实现</strong></h4>
+<h4 id="输入参数-2"><strong>输入参数</strong></h4>
+<p><strong>inputs</strong>（类型：<code>List[Tensor]</code>）：包含多个二维矩阵的列表，表示左操作数，每个矩阵的形状为
+<code>[N_i, K_i]</code>，其中 <code>N_i</code> 是行数，<code>K_i</code>
+是列数。</p>
+<p><strong>others</strong>（类型：<code>List[Tensor]</code>）：包含多个二维矩阵的列表，表示右操作数，每个矩阵的形状为
+<code>[K_i, M_i]</code>，其中 <code>K_i</code> 和左操作数中的
+<code>K_i</code> 必须匹配。</p>
+<p><strong>biases</strong>（类型：<code>Optional[List[Tensor]]</code>，默认为
+<code>None</code>）：每个输出矩阵的可选偏置项，偏置的形状为
+<code>[M_i]</code>，即每个输出矩阵有一个偏置，形状和每个输出矩阵的列数相同。如果提供了偏置，结果矩阵会加上相应的偏置。</p>
+<h4 id="返回值-2"><strong>返回值</strong></h4>
+<p>返回一个包含多个二维矩阵的列表。每个矩阵的形状为
+<code>[N_i, M_i]</code>，即每个输出矩阵是输入矩阵和相应的右操作数矩阵相乘得到的结果。</p>
+<h4 id="具体实现-2"><strong>具体实现</strong></h4>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python">outs = <span class="hljs-built_in">list</span>(GroupedMatmul.apply(<span class="hljs-built_in">tuple</span>(inputs + others)))<br><br><span class="hljs-keyword">if</span> biases <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:<br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(biases)):<br>        outs[i] = outs[i] + biases[i]<br><br>        <span class="hljs-keyword">return</span> outs<br></code></pre></td></tr></table></figure>
-<p><code>GroupedMatmul.apply</code> 是一个自定义的运算，它执行了输入矩阵和右操作矩阵的批量矩阵乘法。我们将在下面介绍<code>inputs + others</code> 是将 <code>inputs</code> 和 <code>others</code> 两个列表合并为一个元组，传递给 <code>GroupedMatmul.apply</code> 进行矩阵乘法计算。如果提供了偏置项 <code>biases</code>，则将每个输出矩阵的相应偏置加到对应的输出矩阵中。对于每一组，输出矩阵会加上相应的偏置。</p>
-<h4 id="GroupedMatmul介绍"><strong>GroupedMatmul介绍</strong></h4>
-<p><code>GroupedMatmul</code> 是一个自定义的 PyTorch 运算（通过 <code>torch.autograd.Function</code> 类定义），它执行的是批量矩阵乘法，并能够自动计算矩阵乘法过程中的梯度。它特别适用于在每个组中有多个矩阵对的场景，通过高效的并行化计算提升性能。</p>
+<p><code>GroupedMatmul.apply</code>
+是一个自定义的运算，它执行了输入矩阵和右操作矩阵的批量矩阵乘法。我们将在下面介绍<code>inputs + others</code>
+是将 <code>inputs</code> 和 <code>others</code>
+两个列表合并为一个元组，传递给 <code>GroupedMatmul.apply</code>
+进行矩阵乘法计算。如果提供了偏置项
+<code>biases</code>，则将每个输出矩阵的相应偏置加到对应的输出矩阵中。对于每一组，输出矩阵会加上相应的偏置。</p>
+<h4 id="groupedmatmul介绍"><strong>GroupedMatmul介绍</strong></h4>
+<p><code>GroupedMatmul</code> 是一个自定义的 PyTorch 运算（通过
+<code>torch.autograd.Function</code>
+类定义），它执行的是批量矩阵乘法，并能够自动计算矩阵乘法过程中的梯度。它特别适用于在每个组中有多个矩阵对的场景，通过高效的并行化计算提升性能。</p>
 <ul>
-<li>
-<p>forward()</p>
+<li><p>forward()</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">forward</span>(<span class="hljs-params">ctx, args: <span class="hljs-type">Tuple</span>[Tensor]</span>) -&gt; <span class="hljs-type">Tuple</span>[Tensor]:<br>       ctx.save_for_backward(*args)<br>  <br>       inputs: <span class="hljs-type">List</span>[Tensor] = [x <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> args[:<span class="hljs-built_in">int</span>(<span class="hljs-built_in">len</span>(args) / <span class="hljs-number">2</span>)]]<br>       others: <span class="hljs-type">List</span>[Tensor] = [other <span class="hljs-keyword">for</span> other <span class="hljs-keyword">in</span> args[<span class="hljs-built_in">int</span>(<span class="hljs-built_in">len</span>(args) / <span class="hljs-number">2</span>):]]<br>       outs = torch.ops.pyg.grouped_matmul(inputs, others)<br>  <br>       <span class="hljs-comment"># NOTE Autograd doesnt set `out[i].requires_grad = True` automatically</span><br>       <span class="hljs-keyword">for</span> x, other, out <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(inputs, others, outs):<br>           <span class="hljs-keyword">if</span> x.requires_grad <span class="hljs-keyword">or</span> other.requires_grad:<br>               out.requires_grad = <span class="hljs-literal">True</span><br>  <br>       <span class="hljs-keyword">return</span> <span class="hljs-built_in">tuple</span>(outs)<br></code></pre></td></tr></table></figure>
-<p><strong>保存输入张量</strong>：<code>ctx.save_for_backward(*args)</code> 保存输入的张量，以便在反向传播时使用。</p>
-<p><strong>分割输入张量</strong>：将输入的元组 <code>args</code> 切分为 <code>inputs</code> 和 <code>others</code>。<code>inputs</code> 是左操作数的张量，<code>others</code> 是右操作数的张量。</p>
+<p><strong>保存输入张量</strong>：<code>ctx.save_for_backward(*args)</code>
+保存输入的张量，以便在反向传播时使用。</p>
+<p><strong>分割输入张量</strong>：将输入的元组 <code>args</code> 切分为
+<code>inputs</code> 和 <code>others</code>。<code>inputs</code>
+是左操作数的张量，<code>others</code> 是右操作数的张量。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">inputs: <span class="hljs-type">List</span>[Tensor] = [x <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> args[:<span class="hljs-built_in">int</span>(<span class="hljs-built_in">len</span>(args) / <span class="hljs-number">2</span>)]]<br>others: <span class="hljs-type">List</span>[Tensor] = [other <span class="hljs-keyword">for</span> other <span class="hljs-keyword">in</span> args[<span class="hljs-built_in">int</span>(<span class="hljs-built_in">len</span>(args) / <span class="hljs-number">2</span>):]]<br></code></pre></td></tr></table></figure>
-<p><strong>执行矩阵乘法</strong>：通过 <code>torch.ops.pyg.grouped_matmul(inputs, others)</code> 调用pyg-lib中实现的矩阵乘法操作，并将结果存储在 <code>outs</code> 中。</p>
-<p><strong>设置梯度</strong>：如果 <code>inputs</code> 或 <code>others</code> 中有一个张量的 <code>requires_grad</code> 为 <code>True</code>，则将对应的输出张量的 <code>requires_grad</code> 设置为 <code>True</code>，确保可以在反向传播时计算该输出的梯度。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">for</span> x, other, out <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(inputs, others, outs):<br>    <span class="hljs-keyword">if</span> x.requires_grad <span class="hljs-keyword">or</span> other.requires_grad:<br>        out.requires_grad = <span class="hljs-literal">True</span><br></code></pre></td></tr></table></figure>
-</li>
-<li>
-<p>backward()</p>
+<p><strong>执行矩阵乘法</strong>：通过
+<code>torch.ops.pyg.grouped_matmul(inputs, others)</code>
+调用pyg-lib中实现的矩阵乘法操作，并将结果存储在 <code>outs</code>
+中。</p>
+<p><strong>设置梯度</strong>：如果 <code>inputs</code> 或
+<code>others</code> 中有一个张量的 <code>requires_grad</code> 为
+<code>True</code>，则将对应的输出张量的 <code>requires_grad</code>
+设置为 <code>True</code>，确保可以在反向传播时计算该输出的梯度。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">for</span> x, other, out <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(inputs, others, outs):<br>    <span class="hljs-keyword">if</span> x.requires_grad <span class="hljs-keyword">or</span> other.requires_grad:<br>        out.requires_grad = <span class="hljs-literal">True</span><br></code></pre></td></tr></table></figure></li>
+<li><p>backward()</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">backward</span>(<span class="hljs-params">ctx, *outs_grad: <span class="hljs-type">Tuple</span>[Tensor]</span>) -&gt; <span class="hljs-type">Tuple</span>[Tensor]:<br>      args = ctx.saved_tensors<br>      inputs: <span class="hljs-type">List</span>[Tensor] = [x <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> args[:<span class="hljs-built_in">int</span>(<span class="hljs-built_in">len</span>(outs_grad))]]<br>      others: <span class="hljs-type">List</span>[Tensor] = [other <span class="hljs-keyword">for</span> other <span class="hljs-keyword">in</span> args[<span class="hljs-built_in">int</span>(<span class="hljs-built_in">len</span>(outs_grad)):]]<br>  <br>      inputs_grad = []<br>      <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>([x.requires_grad <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> inputs]):<br>          others = [other.t() <span class="hljs-keyword">for</span> other <span class="hljs-keyword">in</span> others]<br>          inputs_grad = torch.ops.pyg.grouped_matmul(outs_grad, others)<br>      <span class="hljs-keyword">else</span>:<br>          inputs_grad = [<span class="hljs-literal">None</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(outs_grad))]<br>  <br>      others_grad = []<br>      <span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>([other.requires_grad <span class="hljs-keyword">for</span> other <span class="hljs-keyword">in</span> others]):<br>          inputs = [x.t() <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> inputs]<br>          others_grad = torch.ops.pyg.grouped_matmul(inputs, outs_grad)<br>      <span class="hljs-keyword">else</span>:<br>          others_grad = [<span class="hljs-literal">None</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(outs_grad))]<br>  <br>      <span class="hljs-keyword">return</span> <span class="hljs-built_in">tuple</span>(inputs_grad + others_grad)<br></code></pre></td></tr></table></figure>
-<p><strong>获取保存的输入张量</strong>：通过 <code>ctx.saved_tensors</code> 获取保存的输入张量（<code>inputs</code> 和 <code>others</code>）。</p>
+<p><strong>获取保存的输入张量</strong>：通过
+<code>ctx.saved_tensors</code> 获取保存的输入张量（<code>inputs</code>
+和 <code>others</code>）。</p>
 <p><strong>计算 <code>inputs</code> 的梯度</strong>：</p>
 <ul>
-<li>如果 <code>inputs</code> 中的任何张量要求梯度（即 <code>requires_grad</code> 为 <code>True</code>），则转置 <code>others</code> 并执行矩阵乘法。</li>
-<li>使用 <code>torch.ops.pyg.grouped_matmul</code> 来计算反向传播时 <code>inputs</code> 的梯度。</li>
+<li>如果 <code>inputs</code> 中的任何张量要求梯度（即
+<code>requires_grad</code> 为 <code>True</code>），则转置
+<code>others</code> 并执行矩阵乘法。</li>
+<li>使用 <code>torch.ops.pyg.grouped_matmul</code> 来计算反向传播时
+<code>inputs</code> 的梯度。</li>
 </ul>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>([x.requires_grad <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> inputs]):<br>    others = [other.t() <span class="hljs-keyword">for</span> other <span class="hljs-keyword">in</span> others]<br>    inputs_grad = torch.ops.pyg.grouped_matmul(outs_grad, others)<br><span class="hljs-keyword">else</span>:<br>    inputs_grad = [<span class="hljs-literal">None</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(outs_grad))]<br></code></pre></td></tr></table></figure>
 <p><strong>计算 <code>others</code> 的梯度</strong>：</p>
 <ul>
-<li>如果 <code>others</code> 中的任何张量要求梯度（即 <code>requires_grad</code> 为 <code>True</code>），则转置 <code>inputs</code> 并执行矩阵乘法。</li>
-<li>使用 <code>torch.ops.pyg.grouped_matmul</code> 来计算反向传播时 <code>others</code> 的梯度。</li>
+<li>如果 <code>others</code> 中的任何张量要求梯度（即
+<code>requires_grad</code> 为 <code>True</code>），则转置
+<code>inputs</code> 并执行矩阵乘法。</li>
+<li>使用 <code>torch.ops.pyg.grouped_matmul</code> 来计算反向传播时
+<code>others</code> 的梯度。</li>
 </ul>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">if</span> <span class="hljs-built_in">any</span>([other.requires_grad <span class="hljs-keyword">for</span> other <span class="hljs-keyword">in</span> others]):<br>    inputs = [x.t() <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> inputs]<br>    others_grad = torch.ops.pyg.grouped_matmul(inputs, outs_grad)<br><span class="hljs-keyword">else</span>:<br>    others_grad = [<span class="hljs-literal">None</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(outs_grad))]<br></code></pre></td></tr></table></figure>
-<p><strong>返回梯度</strong>：返回 <code>inputs_grad</code> 和 <code>others_grad</code>，这些是输入张量和右操作数矩阵在反向传播中的梯度。</p>
-</li>
+<p><strong>返回梯度</strong>：返回 <code>inputs_grad</code> 和
+<code>others_grad</code>，这些是输入张量和右操作数矩阵在反向传播中的梯度。</p></li>
 </ul>
-<h3 id="2-4-fused-scatter-reduce">2.4 fused_scatter_reduce()</h3>
+<h3 id="fused_scatter_reduce">2.4 fused_scatter_reduce()</h3>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">fused_scatter_reduce</span>(<span class="hljs-params"></span><br><span class="hljs-params">    inputs: Tensor,</span><br><span class="hljs-params">    index: Tensor,</span><br><span class="hljs-params">    dim_size: <span class="hljs-built_in">int</span>,</span><br><span class="hljs-params">    reduce_list: <span class="hljs-type">List</span>[<span class="hljs-built_in">str</span>],</span><br><span class="hljs-params"></span>) -&gt; Tensor:<br></code></pre></td></tr></table></figure>
-<h4 id="功能描述-4"><strong>功能描述</strong></h4>
-<p><code>fused_scatter_reduce</code> 函数的目标是将多个散点聚合操作合并成一个内核函数，减少多个内核函数调用的开销，提高执行效率。它支持以下聚合操作：</p>
+<h4 id="功能描述-3"><strong>功能描述</strong></h4>
+<p><code>fused_scatter_reduce</code>
+函数的目标是将多个散点聚合操作合并成一个内核函数，减少多个内核函数调用的开销，提高执行效率。它支持以下聚合操作：</p>
 <ul>
 <li><strong>sum</strong>（求和）</li>
 <li><strong>mean</strong>（均值）</li>
 <li><strong>max</strong>（最大值）</li>
 <li><strong>min</strong>（最小值）</li>
 </ul>
-<h4 id="输入参数-4"><strong>输入参数</strong></h4>
-<p><strong>inputs</strong> (<code>Tensor</code>): 输入的张量，形状为 <code>[N, F]</code>，其中 <code>N</code> 是元素的数量，<code>F</code> 是每个元素的特征数。此张量包含了需要进行聚合的数值。</p>
-<p><strong>index</strong> (<code>Tensor</code>): 形状为 <code>[N]</code> 的索引张量，用于指定每个元素所属的组。<code>inputs[i]</code> 被聚合到 <code>index[i]</code> 指定的组中。</p>
-<p><strong>dim_size</strong> (<code>int</code>): 聚合后的目标维度大小（即结果张量的行数）。</p>
-<p><strong>reduce_list</strong> (<code>List[str]</code>): 聚合操作的列表，支持的操作包括 <code>sum</code>、<code>mean</code>、<code>max</code> 和 <code>min</code>。</p>
-<h4 id="返回值-4"><strong>返回值</strong></h4>
-<p><strong>out</strong> (<code>Tensor</code>): 形状为 <code>[dim_size, len(reduce_list) * num_feats]</code> 的输出张量，包含了按给定聚合操作（<code>reduce_list</code>）聚合后的结果。每个组的多个聚合操作结果在该维度上按顺序排列。</p>
-<h4 id="具体实现-4"><strong>具体实现</strong></h4>
+<h4 id="输入参数-3"><strong>输入参数</strong></h4>
+<p><strong>inputs</strong> (<code>Tensor</code>): 输入的张量，形状为
+<code>[N, F]</code>，其中 <code>N</code> 是元素的数量，<code>F</code>
+是每个元素的特征数。此张量包含了需要进行聚合的数值。</p>
+<p><strong>index</strong> (<code>Tensor</code>): 形状为 <code>[N]</code>
+的索引张量，用于指定每个元素所属的组。<code>inputs[i]</code> 被聚合到
+<code>index[i]</code> 指定的组中。</p>
+<p><strong>dim_size</strong> (<code>int</code>):
+聚合后的目标维度大小（即结果张量的行数）。</p>
+<p><strong>reduce_list</strong> (<code>List[str]</code>):
+聚合操作的列表，支持的操作包括
+<code>sum</code>、<code>mean</code>、<code>max</code> 和
+<code>min</code>。</p>
+<h4 id="返回值-3"><strong>返回值</strong></h4>
+<p><strong>out</strong> (<code>Tensor</code>): 形状为
+<code>[dim_size, len(reduce_list) * num_feats]</code>
+的输出张量，包含了按给定聚合操作（<code>reduce_list</code>）聚合后的结果。每个组的多个聚合操作结果在该维度上按顺序排列。</p>
+<h4 id="具体实现-3"><strong>具体实现</strong></h4>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">assert</span> inputs.is_floating_point()<br><span class="hljs-keyword">assert</span> inputs.is_cuda <span class="hljs-keyword">and</span> index.is_cuda<br><span class="hljs-keyword">assert</span> inputs.dim() == <span class="hljs-number">2</span> <span class="hljs-keyword">and</span> index.dim() == <span class="hljs-number">1</span><br><span class="hljs-keyword">assert</span> inputs.size(<span class="hljs-number">0</span>) == index.size(<span class="hljs-number">0</span>)<br><span class="hljs-keyword">assert</span> inputs.is_contiguous() <span class="hljs-keyword">and</span> index.is_contiguous()<br>   num_feats = inputs.size(<span class="hljs-number">1</span>)<br>   num_reductions = <span class="hljs-built_in">len</span>(reduce_list)<br><br>   <span class="hljs-keyword">assert</span> <span class="hljs-built_in">isinstance</span>(reduce_list, <span class="hljs-built_in">list</span>) <span class="hljs-keyword">and</span> <span class="hljs-built_in">len</span>(reduce_list) &lt;= NUM_REDUCTIONS<br><br>   <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(reduce_list) &lt;= <span class="hljs-number">1</span>:<br>       warnings.warn(<span class="hljs-string">f"It is not recommended to call `fused_scatter_reduce` "</span><br>                     <span class="hljs-string">f"with a single reduction (got <span class="hljs-subst">{reduce_list}</span>). Please "</span><br>                     <span class="hljs-string">f"consider using vanilla `scatter_reduce_` instead."</span>)<br><br>       reduce_slice_dict = {<br>           reduce: <span class="hljs-built_in">slice</span>(i * num_feats, (i + <span class="hljs-number">1</span>) * num_feats)<br>           <span class="hljs-keyword">for</span> i, reduce <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(reduce_list)<br>       }<br>       <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(reduce_list) == <span class="hljs-built_in">len</span>(reduce_slice_dict)<br></code></pre></td></tr></table></figure>
-<p>首先对输入进行验证，确保 <code>inputs</code> 和 <code>index</code> 是 CUDA 张量，且 <code>inputs</code> 是浮点数类型。确保 <code>inputs</code> 是一个二维张量，而 <code>index</code> 是一维张量，并且它们的第一维大小相同。对 <code>reduce_list</code> 进行检查，确保其长度不超过 <code>NUM_REDUCTIONS</code>（最大支持的聚合操作数目）。</p>
+<p>首先对输入进行验证，确保 <code>inputs</code> 和 <code>index</code> 是
+CUDA 张量，且 <code>inputs</code> 是浮点数类型。确保 <code>inputs</code>
+是一个二维张量，而 <code>index</code>
+是一维张量，并且它们的第一维大小相同。对 <code>reduce_list</code>
+进行检查，确保其长度不超过
+<code>NUM_REDUCTIONS</code>（最大支持的聚合操作数目）。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs python">out = inputs.new(dim_size, <span class="hljs-built_in">len</span>(reduce_list) * num_feats)<br>   <br>     <span class="hljs-comment"># Pre-processing: Take care of correct initialization for each reduction:</span><br>   <span class="hljs-keyword">for</span> i, reduce <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(reduce_list):<br>       <span class="hljs-keyword">assert</span> reduce <span class="hljs-keyword">in</span> REDUCTIONS<br>       <span class="hljs-keyword">if</span> reduce == <span class="hljs-string">'min'</span>:<br>           fill_value = <span class="hljs-built_in">float</span>(<span class="hljs-string">'inf'</span>)<br>       <span class="hljs-keyword">elif</span> reduce == <span class="hljs-string">'max'</span>:<br>           fill_value = <span class="hljs-built_in">float</span>(<span class="hljs-string">'-inf'</span>)<br>       <span class="hljs-keyword">else</span>:<br>           fill_value = <span class="hljs-number">0.0</span><br>       out[:, reduce_slice_dict[reduce]] = fill_value<br></code></pre></td></tr></table></figure>
-<p>接下来，初始化一个大小为 <code>[dim_size, len(reduce_list) * num_feats]</code> 的输出张量 <code>out</code>，并根据不同的聚合操作（<code>reduce_list</code>）对其进行初始化：</p>
+<p>接下来，初始化一个大小为
+<code>[dim_size, len(reduce_list) * num_feats]</code> 的输出张量
+<code>out</code>，并根据不同的聚合操作（<code>reduce_list</code>）对其进行初始化：</p>
 <ul>
-<li>对于 <code>min</code> 聚合操作，初始化为 <code>float('inf')</code>。</li>
-<li>对于 <code>max</code> 聚合操作，初始化为 <code>float('-inf')</code>。</li>
-<li>对于 <code>sum</code> 和 <code>mean</code> 聚合操作，初始化为 0。</li>
+<li>对于 <code>min</code> 聚合操作，初始化为
+<code>float('inf')</code>。</li>
+<li>对于 <code>max</code> 聚合操作，初始化为
+<code>float('-inf')</code>。</li>
+<li>对于 <code>sum</code> 和 <code>mean</code> 聚合操作，初始化为
+0。</li>
 </ul>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># Fill `reduce_list` with dummy values.</span><br>  reduce_list = reduce_list + [NONE] * (NUM_REDUCTIONS - <span class="hljs-built_in">len</span>(reduce_list))<br></code></pre></td></tr></table></figure>
-<p>如果 <code>reduce_list</code> 中的聚合操作少于 <code>NUM_REDUCTIONS</code>（最大支持的聚合操作数），则用 <code>NONE</code> 填充，确保后续的 GPU 内核调用能够正确处理。</p>
+<p>如果 <code>reduce_list</code> 中的聚合操作少于
+<code>NUM_REDUCTIONS</code>（最大支持的聚合操作数），则用
+<code>NONE</code> 填充，确保后续的 GPU 内核调用能够正确处理。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs python">grid = <span class="hljs-keyword">lambda</span> meta: (  <span class="hljs-comment"># noqa: E731</span><br>      triton.cdiv(inputs.numel(), meta[<span class="hljs-string">'BLOCK_SIZE'</span>]), )<br> _fused_scatter_reduce_forward_kernel[grid](<br>      inputs,<br>      index,<br>      out,<br>      num_feats,<br>      num_reductions,<br>      inputs.numel(),<br>      OPT_REDUCTIONS.index(reduce_list[<span class="hljs-number">0</span>]),<br>      OPT_REDUCTIONS.index(reduce_list[<span class="hljs-number">1</span>]),<br>      OPT_REDUCTIONS.index(reduce_list[<span class="hljs-number">2</span>]),<br>      OPT_REDUCTIONS.index(reduce_list[<span class="hljs-number">3</span>]),<br>      BLOCK_SIZE=<span class="hljs-number">256</span>,<br>  )<br></code></pre></td></tr></table></figure>
-<p>使用 <code>triton.cdiv</code> 和一个 <code>grid</code> 函数计算内核的网格大小，调用 GPU 内核 <code>fused_scatter_reduce_forward_kernel</code> 来执行聚合操作。该内核会根据提供的 <code>inputs</code> 和 <code>index</code> 对不同的聚合操作进行计算。我们将在下面介绍<code>fused_scatter_reduce_forward_kernel</code>的具体实现</p>
+<p>使用 <code>triton.cdiv</code> 和一个 <code>grid</code>
+函数计算内核的网格大小，调用 GPU 内核
+<code>fused_scatter_reduce_forward_kernel</code>
+来执行聚合操作。该内核会根据提供的 <code>inputs</code> 和
+<code>index</code>
+对不同的聚合操作进行计算。我们将在下面介绍<code>fused_scatter_reduce_forward_kernel</code>的具体实现</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># Post-processing:</span><br>  <span class="hljs-keyword">if</span> <span class="hljs-string">'mean'</span> <span class="hljs-keyword">in</span> reduce_slice_dict:<br>      degree = inputs.new_zeros(dim_size)<br>      degree.scatter_add_(<span class="hljs-number">0</span>, index, inputs.new_ones(index.numel()))<br>      degree.clamp_(<span class="hljs-built_in">min</span>=<span class="hljs-number">1.0</span>)<br>      tmp = out[:, reduce_slice_dict[<span class="hljs-string">'mean'</span>]]<br>      tmp /= degree.view(-<span class="hljs-number">1</span>, <span class="hljs-number">1</span>)<br>  <span class="hljs-keyword">if</span> <span class="hljs-string">'min'</span> <span class="hljs-keyword">in</span> reduce_slice_dict:<br>      tmp = out[:, reduce_slice_dict[<span class="hljs-string">'min'</span>]]<br>      tmp[tmp == <span class="hljs-built_in">float</span>(<span class="hljs-string">'inf'</span>)] = <span class="hljs-number">0.</span><br>  <span class="hljs-keyword">if</span> <span class="hljs-string">'max'</span> <span class="hljs-keyword">in</span> reduce_slice_dict:<br>      tmp = out[:, reduce_slice_dict[<span class="hljs-string">'max'</span>]]<br>      tmp[tmp == <span class="hljs-built_in">float</span>(<span class="hljs-string">'-inf'</span>)] = <span class="hljs-number">0.</span><br></code></pre></td></tr></table></figure>
-<p><strong>mean</strong>：对于 <code>mean</code> 聚合操作，代码使用 <code>scatter_add_</code> 计算每个组的大小（即每个组的元素数量），然后将聚合结果除以组的大小。</p>
-<p><strong>min</strong>：对于 <code>min</code> 聚合操作，将值为 <code>float('inf')</code> 的元素设置为 0。</p>
-<p><strong>max</strong>：对于 <code>max</code> 聚合操作，将值为 <code>float('-inf')</code> 的元素设置为 0。</p>
-<h4 id="fused-scatter-reduce-forward-kernel">_fused_scatter_reduce_forward_kernel</h4>
+<p><strong>mean</strong>：对于 <code>mean</code> 聚合操作，代码使用
+<code>scatter_add_</code>
+计算每个组的大小（即每个组的元素数量），然后将聚合结果除以组的大小。</p>
+<p><strong>min</strong>：对于 <code>min</code> 聚合操作，将值为
+<code>float('inf')</code> 的元素设置为 0。</p>
+<p><strong>max</strong>：对于 <code>max</code> 聚合操作，将值为
+<code>float('-inf')</code> 的元素设置为 0。</p>
+<h4 id="fused_scatter_reduce_forward_kernel">_fused_scatter_reduce_forward_kernel</h4>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">_fused_scatter_reduce_forward_kernel</span>(<span class="hljs-params">inputs_ptr, index_ptr, out_ptr,</span><br><span class="hljs-params">                                         num_feats, num_reductions, numel,</span><br><span class="hljs-params">                                         REDUCE0, REDUCE1, REDUCE2, REDUCE3,</span><br><span class="hljs-params">                                         BLOCK_SIZE: tl.constexpr</span>):<br>    pid = tl.program_id(axis=<span class="hljs-number">0</span>)<br>    block_start = pid * BLOCK_SIZE<br><br>    offsets = block_start + tl.arange(<span class="hljs-number">0</span>, BLOCK_SIZE)<br>    mask = offsets &lt; numel<br>    inputs = tl.load(inputs_ptr + offsets, mask=mask)<br><br>    index_offsets = offsets // num_feats<br>    index = tl.load(index_ptr + index_offsets, mask=mask)<br><br>    <span class="hljs-comment"># NOTE Triton does not support for-loops. As such, we cap the maximum</span><br>    <span class="hljs-comment"># number of fused operations to `4` and unroll the loop.</span><br>    <span class="hljs-comment"># TODO (matthias) Try to clean this up.</span><br><br>    <span class="hljs-keyword">if</span> REDUCE0 &gt; <span class="hljs-number">0</span>:<br>        out_offsets = (num_feats * num_reductions) * index<br>        out_offsets = out_offsets + (offsets % num_feats)<br>        <span class="hljs-keyword">if</span> REDUCE0 == <span class="hljs-number">1</span>:  <span class="hljs-comment"># sum</span><br>            tl.atomic_add(out_ptr + out_offsets, inputs, mask=mask)<br>        <span class="hljs-keyword">elif</span> REDUCE0 == <span class="hljs-number">2</span>:  <span class="hljs-comment"># mean</span><br>            tl.atomic_add(out_ptr + out_offsets, inputs, mask=mask)<br>        <span class="hljs-keyword">elif</span> REDUCE0 == <span class="hljs-number">3</span>:  <span class="hljs-comment"># min</span><br>            tl.atomic_min(out_ptr + out_offsets, inputs, mask=mask)<br>        <span class="hljs-keyword">elif</span> REDUCE0 == <span class="hljs-number">4</span>:  <span class="hljs-comment"># max</span><br>            tl.atomic_max(out_ptr + out_offsets, inputs, mask=mask)<br><br>    <span class="hljs-keyword">if</span> REDUCE1 &gt; <span class="hljs-number">0</span>:<br>        out_offsets = (num_feats * num_reductions) * index<br>        out_offsets = out_offsets + num_feats<br>        out_offsets = out_offsets + (offsets % num_feats)<br>        <span class="hljs-keyword">if</span> REDUCE1 == <span class="hljs-number">1</span>:  <span class="hljs-comment"># sum</span><br>            tl.atomic_add(out_ptr + out_offsets, inputs, mask=mask)<br>        <span class="hljs-keyword">elif</span> REDUCE1 == <span class="hljs-number">2</span>:  <span class="hljs-comment"># mean</span><br>            tl.atomic_add(out_ptr + out_offsets, inputs, mask=mask)<br>        <span class="hljs-keyword">elif</span> REDUCE2 == <span class="hljs-number">3</span>:  <span class="hljs-comment"># min</span><br>            tl.atomic_min(out_ptr + out_offsets, inputs, mask=mask)<br>        <span class="hljs-keyword">elif</span> REDUCE3 == <span class="hljs-number">4</span>:  <span class="hljs-comment"># max</span><br>            tl.atomic_max(out_ptr + out_offsets, inputs, mask=mask)<br><br>    <span class="hljs-keyword">if</span> REDUCE2 &gt; <span class="hljs-number">0</span>:<br>        out_offsets = (num_feats * num_reductions) * index<br>        out_offsets = out_offsets + (<span class="hljs-number">2</span> * num_feats)<br>        out_offsets = out_offsets + (offsets % num_feats)<br>        <span class="hljs-keyword">if</span> REDUCE2 == <span class="hljs-number">1</span>:  <span class="hljs-comment"># sum</span><br>            tl.atomic_add(out_ptr + out_offsets, inputs, mask=mask)<br>        <span class="hljs-keyword">elif</span> REDUCE2 == <span class="hljs-number">2</span>:  <span class="hljs-comment"># mean</span><br>            tl.atomic_add(out_ptr + out_offsets, inputs, mask=mask)<br>        <span class="hljs-keyword">elif</span> REDUCE2 == <span class="hljs-number">3</span>:  <span class="hljs-comment"># min</span><br>            tl.atomic_min(out_ptr + out_offsets, inputs, mask=mask)<br>        <span class="hljs-keyword">elif</span> REDUCE2 == <span class="hljs-number">4</span>:  <span class="hljs-comment"># max</span><br>            tl.atomic_max(out_ptr + out_offsets, inputs, mask=mask)<br><br>    <span class="hljs-keyword">if</span> REDUCE3 &gt; <span class="hljs-number">0</span>:<br>        out_offsets = (num_feats * num_reductions) * index<br>        out_offsets = out_offsets + (<span class="hljs-number">3</span> * num_feats)<br>        out_offsets = out_offsets + (offsets % num_feats)<br>        <span class="hljs-keyword">if</span> REDUCE3 == <span class="hljs-number">1</span>:  <span class="hljs-comment"># sum</span><br>            tl.atomic_add(out_ptr + out_offsets, inputs, mask=mask)<br>        <span class="hljs-keyword">elif</span> REDUCE3 == <span class="hljs-number">2</span>:  <span class="hljs-comment"># mean</span><br>            tl.atomic_add(out_ptr + out_offsets, inputs, mask=mask)<br>        <span class="hljs-keyword">elif</span> REDUCE3 == <span class="hljs-number">3</span>:  <span class="hljs-comment"># min</span><br>            tl.atomic_min(out_ptr + out_offsets, inputs, mask=mask)<br>        <span class="hljs-keyword">elif</span> REDUCE3 == <span class="hljs-number">4</span>:  <span class="hljs-comment"># max</span><br>            tl.atomic_max(out_ptr + out_offsets, inputs, mask=mask)<br><br></code></pre></td></tr></table></figure>
-<p>该函数 <strong><code>_fused_scatter_reduce_forward_kernel</code></strong> 是一个使用 <strong>Triton</strong> 库编写的 CUDA 内核，用于执行融合的散点聚合操作（scatter-reduce operations）。Triton 是一个专为深度学习模型优化的低级编程库，能够为 GPU 提供高效的内核编程支持。这个内核的主要目标是通过并行执行不同的聚合操作（如求和、均值、最大值和最小值），来提高计算效率，特别是在处理大规模数据时。</p>
+<p>该函数
+<strong><code>_fused_scatter_reduce_forward_kernel</code></strong>
+是一个使用 <strong>Triton</strong> 库编写的 CUDA
+内核，用于执行融合的散点聚合操作（scatter-reduce operations）。Triton
+是一个专为深度学习模型优化的低级编程库，能够为 GPU
+提供高效的内核编程支持。这个内核的主要目标是通过并行执行不同的聚合操作（如求和、均值、最大值和最小值），来提高计算效率，特别是在处理大规模数据时。</p>
 <p><strong>并行化</strong>：该内核通过每个线程并行地处理不同的输入元素，并使用块级并行来加速计算。</p>
 <p><strong>原子操作</strong>：使用原子加法、最小值和最大值操作，确保在多线程环境下进行聚合时不会出现竞争条件。</p>
-<p><strong>Triton 的优势</strong>：Triton 提供的内存访问和原子操作机制，能够充分发挥 GPU 的并行计算能力，从而提高聚合操作的效率。</p>
-<h5 id="计算程序-ID-和块起始位置">计算程序 ID 和块起始位置</h5>
+<p><strong>Triton 的优势</strong>：Triton
+提供的内存访问和原子操作机制，能够充分发挥 GPU
+的并行计算能力，从而提高聚合操作的效率。</p>
+<h5 id="计算程序-id-和块起始位置">计算程序 ID 和块起始位置</h5>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">pid = tl.program_id(axis=<span class="hljs-number">0</span>)<br>block_start = pid * BLOCK_SIZE<br></code></pre></td></tr></table></figure>
 <ul>
-<li><code>pid</code> 是当前程序的 ID，根据每个线程块在程序中的位置进行分配。<code>block_start</code> 是当前块的起始位置，决定了本块内每个线程的处理区域。</li>
+<li><code>pid</code> 是当前程序的
+ID，根据每个线程块在程序中的位置进行分配。<code>block_start</code>
+是当前块的起始位置，决定了本块内每个线程的处理区域。</li>
 </ul>
 <h5 id="计算每个线程处理的偏移量">计算每个线程处理的偏移量</h5>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python">offsets = block_start + tl.arange(<span class="hljs-number">0</span>, BLOCK_SIZE)<br>mask = offsets &lt; numel<br>inputs = tl.load(inputs_ptr + offsets, mask=mask)<br></code></pre></td></tr></table></figure>
 <ul>
 <li><code>offsets</code> 是当前线程块内各个线程处理的数据的索引。</li>
 <li><code>mask</code> 用于确保线程不会访问超出数据范围的内存。</li>
-<li><code>inputs</code> 是加载当前线程处理的数据块，它通过 <code>inputs_ptr + offsets</code> 从内存中读取数据。</li>
+<li><code>inputs</code> 是加载当前线程处理的数据块，它通过
+<code>inputs_ptr + offsets</code> 从内存中读取数据。</li>
 </ul>
 <h5 id="计算对应的索引值">计算对应的索引值</h5>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">index_offsets = offsets // num_feats<br>index = tl.load(index_ptr + index_offsets, mask=mask)<br></code></pre></td></tr></table></figure>
 <ul>
-<li><code>index_offsets</code> 是通过将 <code>offsets</code> 除以 <code>num_feats</code> 得到的索引偏移量。</li>
-<li><code>index</code> 是当前线程读取的索引值，指定了每个输入元素的目标组。</li>
+<li><code>index_offsets</code> 是通过将 <code>offsets</code> 除以
+<code>num_feats</code> 得到的索引偏移量。</li>
+<li><code>index</code>
+是当前线程读取的索引值，指定了每个输入元素的目标组。</li>
 </ul>
 <h5 id="聚合操作的执行">聚合操作的执行</h5>
-<p>这部分代码根据传入的聚合操作类型（<code>REDUCE0</code>, <code>REDUCE1</code>, <code>REDUCE2</code>, <code>REDUCE3</code>）来执行不同的操作。对于每个操作，都会计算输出的偏移量并根据指定的聚合方式（如 sum、mean、min、max）执行相应的计算。</p>
+<p>这部分代码根据传入的聚合操作类型（<code>REDUCE0</code>,
+<code>REDUCE1</code>, <code>REDUCE2</code>,
+<code>REDUCE3</code>）来执行不同的操作。对于每个操作，都会计算输出的偏移量并根据指定的聚合方式（如
+sum、mean、min、max）执行相应的计算。</p>
 <p>以 <code>REDUCE0</code> 为例：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">if</span> REDUCE0 &gt; <span class="hljs-number">0</span>:<br>    out_offsets = (num_feats * num_reductions) * index<br>    out_offsets = out_offsets + (offsets % num_feats)<br>    <span class="hljs-keyword">if</span> REDUCE0 == <span class="hljs-number">1</span>:  <span class="hljs-comment"># sum</span><br>        tl.atomic_add(out_ptr + out_offsets, inputs, mask=mask)<br>    <span class="hljs-keyword">elif</span> REDUCE0 == <span class="hljs-number">2</span>:  <span class="hljs-comment"># mean</span><br>        tl.atomic_add(out_ptr + out_offsets, inputs, mask=mask)<br>    <span class="hljs-keyword">elif</span> REDUCE0 == <span class="hljs-number">3</span>:  <span class="hljs-comment"># min</span><br>        tl.atomic_min(out_ptr + out_offsets, inputs, mask=mask)<br>    <span class="hljs-keyword">elif</span> REDUCE0 == <span class="hljs-number">4</span>:  <span class="hljs-comment"># max</span><br>        tl.atomic_max(out_ptr + out_offsets, inputs, mask=mask)<br></code></pre></td></tr></table></figure>
 <ul>
-<li>
-<p>聚合操作的选择</p>
+<li><p>聚合操作的选择</p>
 <p>根据 REDUCE0的值来选择聚合操作类型</p>
 <ul>
-<li><strong>sum</strong>：使用 <code>tl.atomic_add</code> 进行加法聚合。</li>
-<li><strong>mean</strong>：使用 <code>tl.atomic_add</code> 进行加法，然后在后处理阶段进行均值计算。</li>
-<li><strong>min</strong>：使用 <code>tl.atomic_min</code> 进行最小值聚合。</li>
-<li><strong>max</strong>：使用 <code>tl.atomic_max</code> 进行最大值聚合。</li>
+<li><strong>sum</strong>：使用 <code>tl.atomic_add</code>
+进行加法聚合。</li>
+<li><strong>mean</strong>：使用 <code>tl.atomic_add</code>
+进行加法，然后在后处理阶段进行均值计算。</li>
+<li><strong>min</strong>：使用 <code>tl.atomic_min</code>
+进行最小值聚合。</li>
+<li><strong>max</strong>：使用 <code>tl.atomic_max</code>
+进行最大值聚合。</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<p>每个聚合操作会计算相应的输出偏移量（<code>out_offsets</code>），并将结果存储在 <code>out_ptr</code> 指向的输出张量中。</p>
-<p>类似的操作会对 <code>REDUCE1</code>, <code>REDUCE2</code>, 和 <code>REDUCE3</code> 进行处理，分别执行不同的聚合操作。</p>
+<p>每个聚合操作会计算相应的输出偏移量（<code>out_offsets</code>），并将结果存储在
+<code>out_ptr</code> 指向的输出张量中。</p>
+<p>类似的操作会对 <code>REDUCE1</code>, <code>REDUCE2</code>, 和
+<code>REDUCE3</code> 进行处理，分别执行不同的聚合操作。</p>
 <h5 id="聚合结果的更新">聚合结果的更新</h5>
-<p>每个聚合操作都会通过原子操作（如 <code>tl.atomic_add</code>, <code>tl.atomic_min</code>, <code>tl.atomic_max</code>）更新输出张量。原子操作确保在多个线程并发访问时，数据的一致性和正确性。</p>
-<h3 id="2-5-softmax-csr">2.5 softmax_csr()</h3>
+<p>每个聚合操作都会通过原子操作（如 <code>tl.atomic_add</code>,
+<code>tl.atomic_min</code>,
+<code>tl.atomic_max</code>）更新输出张量。原子操作确保在多个线程并发访问时，数据的一致性和正确性。</p>
+<h3 id="softmax_csr">2.5 softmax_csr()</h3>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">softmax_csr</span>(<span class="hljs-params"></span><br><span class="hljs-params">    src: Tensor,</span><br><span class="hljs-params">    ptr: Tensor,</span><br><span class="hljs-params">    dim: <span class="hljs-built_in">int</span> = <span class="hljs-number">0</span>,</span><br><span class="hljs-params"></span>) -&gt; Tensor:<br>   <br></code></pre></td></tr></table></figure>
-<h4 id="功能描述-5"><strong>功能描述</strong></h4>
-<p><code>softmax_csr</code> 是一个计算稀疏数据上 Softmax 的函数。给定一个张量 <code>src</code> 和一个 CSR（Compressed Sparse Row）格式的指示数组 <code>ptr</code>，该函数在指定维度 <code>dim</code> 上对每一组进行独立的 Softmax 计算。CSR 格式是一个常用的稀疏矩阵表示方法，适用于大规模稀疏矩阵的计算，能够节省内存并提高计算效率。</p>
+<h4 id="功能描述-4"><strong>功能描述</strong></h4>
+<p><code>softmax_csr</code> 是一个计算稀疏数据上 Softmax
+的函数。给定一个张量 <code>src</code> 和一个 CSR（Compressed Sparse
+Row）格式的指示数组 <code>ptr</code>，该函数在指定维度 <code>dim</code>
+上对每一组进行独立的 Softmax 计算。CSR
+格式是一个常用的稀疏矩阵表示方法，适用于大规模稀疏矩阵的计算，能够节省内存并提高计算效率。</p>
 <p>该函数的功能主要包括：</p>
 <ul>
-<li>根据 <code>ptr</code> 数组将数据 <code>src</code> 按照给定维度 <code>dim</code> 进行分组。</li>
-<li>在每个组内，单独计算 Softmax。Softmax 的计算方式是在每个组内部进行归一化，以确保每组的元素和为 1。</li>
+<li>根据 <code>ptr</code> 数组将数据 <code>src</code> 按照给定维度
+<code>dim</code> 进行分组。</li>
+<li>在每个组内，单独计算 Softmax。Softmax
+的计算方式是在每个组内部进行归一化，以确保每组的元素和为 1。</li>
 </ul>
-<h4 id="输入参数-5"><strong>输入参数</strong></h4>
-<p><strong>src (Tensor)</strong>: 输入张量，包含需要计算 Softmax 的数据。通常是一个二维或更高维的张量，其每一维的元素代表一个需要计算 Softmax 的数据点。<code>src</code> 必须是一个浮动点类型的张量（如 <code>float32</code> 或 <code>float64</code>），并且必须位于 CUDA 设备上。</p>
-<p><strong>ptr (Tensor)</strong>: 用于指示分组的 CSR 指针数组。<code>ptr</code> 是一个一维张量，表示每一组的起始位置。其长度为 <code>N + 1</code>，其中 <code>N</code> 是数据中组的数量，<code>ptr[i]</code> 表示第 <code>i</code> 组的起始位置（包含）。<code>ptr[i + 1]</code> 表示第 <code>i</code> 组的结束位置。<code>ptr</code> 也必须位于 CUDA 设备上。</p>
-<p><strong>dim (int, optional)</strong>: 指定 Softmax 计算的维度。默认值为 0，即在第一个维度上计算 Softmax。如果 <code>dim</code> 小于零，则通过 <code>dim + src.dim()</code> 计算一个合法的维度值。</p>
-<h4 id="返回值-5"><strong>返回值</strong></h4>
-<p>返回一个张量，其中每个组内的元素已经按 Softmax 计算进行归一化。结果的维度与输入张量 <code>src</code> 相同。</p>
-<h4 id="具体实现-5"><strong>具体实现</strong></h4>
+<h4 id="输入参数-4"><strong>输入参数</strong></h4>
+<p><strong>src (Tensor)</strong>: 输入张量，包含需要计算 Softmax
+的数据。通常是一个二维或更高维的张量，其每一维的元素代表一个需要计算
+Softmax 的数据点。<code>src</code> 必须是一个浮动点类型的张量（如
+<code>float32</code> 或 <code>float64</code>），并且必须位于 CUDA
+设备上。</p>
+<p><strong>ptr (Tensor)</strong>: 用于指示分组的 CSR
+指针数组。<code>ptr</code>
+是一个一维张量，表示每一组的起始位置。其长度为 <code>N + 1</code>，其中
+<code>N</code> 是数据中组的数量，<code>ptr[i]</code> 表示第
+<code>i</code> 组的起始位置（包含）。<code>ptr[i + 1]</code> 表示第
+<code>i</code> 组的结束位置。<code>ptr</code> 也必须位于 CUDA
+设备上。</p>
+<p><strong>dim (int, optional)</strong>: 指定 Softmax
+计算的维度。默认值为 0，即在第一个维度上计算 Softmax。如果
+<code>dim</code> 小于零，则通过 <code>dim + src.dim()</code>
+计算一个合法的维度值。</p>
+<h4 id="返回值-4"><strong>返回值</strong></h4>
+<p>返回一个张量，其中每个组内的元素已经按 Softmax
+计算进行归一化。结果的维度与输入张量 <code>src</code> 相同。</p>
+<h4 id="具体实现-4"><strong>具体实现</strong></h4>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">softmax_csr</span>(<span class="hljs-params"></span><br><span class="hljs-params">    src: Tensor,</span><br><span class="hljs-params">    ptr: Tensor,</span><br><span class="hljs-params">    dim: <span class="hljs-built_in">int</span> = <span class="hljs-number">0</span>,</span><br><span class="hljs-params"></span>) -&gt; Tensor:<br>    <span class="hljs-string">r"""Computes a sparsely evaluated softmax.</span><br><span class="hljs-string">    Given a value tensor :attr:`src`, this function first groups the values</span><br><span class="hljs-string">    along the given dimension :attr:`dim`, based on the indices specified via</span><br><span class="hljs-string">    :attr:`ptr`, and then proceeds to compute the softmax individually for</span><br><span class="hljs-string">    each group.</span><br><span class="hljs-string"></span><br><span class="hljs-string">    Args:</span><br><span class="hljs-string">        src: The source tensor.</span><br><span class="hljs-string">        ptr: Groups defined by CSR representation.</span><br><span class="hljs-string">        dim: The dimension in which to normalize.</span><br><span class="hljs-string">    """</span><br>    <span class="hljs-comment"># 确保 dim 是一个合法的维度索引</span><br>    dim = dim + src.dim() <span class="hljs-keyword">if</span> dim &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> dim<br><br>    <span class="hljs-comment"># 调用 PyTorch Geometric 提供的底层操作来计算稀疏 Softmax</span><br>    <span class="hljs-keyword">return</span> torch.ops.pyg.softmax_csr(src, ptr, dim)<br><br></code></pre></td></tr></table></figure>
 <p><strong>维度处理</strong>：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python">dim = dim + src.dim() <span class="hljs-keyword">if</span> dim &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> dim<br></code></pre></td></tr></table></figure>
-<p>这行代码用于确保 <code>dim</code> 始终是一个合法的维度索引。如果 <code>dim</code> 是负数，它将根据 <code>src</code> 的维度大小进行调整，将其转换为一个正的有效维度索引。</p>
+<p>这行代码用于确保 <code>dim</code> 始终是一个合法的维度索引。如果
+<code>dim</code> 是负数，它将根据 <code>src</code>
+的维度大小进行调整，将其转换为一个正的有效维度索引。</p>
 <p><strong>核心操作</strong>：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">return</span> torch.ops.pyg.softmax_csr(src, ptr, dim)<br></code></pre></td></tr></table></figure>
-<p>这里调用了 PyTorch Geometric 库中的底层操作 <code>torch.ops.pyg.softmax_csr</code> 来执行稀疏 Softmax 计算。该操作会在 CSR 格式的数据上进行 Softmax 计算，并且每个组内会独立进行归一化。</p>
-<h2 id="3-sampler">3. sampler</h2>
-<h4 id="3-1-neighbor-sample">3.1 neighbor_sample()</h4>
-<h5 id="功能描述-6">功能描述</h5>
+<p>这里调用了 PyTorch Geometric 库中的底层操作
+<code>torch.ops.pyg.softmax_csr</code> 来执行稀疏 Softmax
+计算。该操作会在 CSR 格式的数据上进行 Softmax
+计算，并且每个组内会独立进行归一化。</p>
+<h2 id="sampler">3. sampler</h2>
+<h4 id="neighbor_sample">3.1 neighbor_sample()</h4>
+<h5 id="功能描述-5">功能描述</h5>
 <p>用于从图中的种子节点递归地采样邻居。可以通过设置不同的参数来调整采样方式，如采样数量、时间戳、边权重等。</p>
 <h5 id="输入">输入</h5>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">neighbor_sample</span>(<span class="hljs-params"></span><br><span class="hljs-params">    rowptr: Tensor,</span><br><span class="hljs-params">    col: Tensor,</span><br><span class="hljs-params">    seed: Tensor,</span><br><span class="hljs-params">    num_neighbors: <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>],</span><br><span class="hljs-params">    node_time: <span class="hljs-type">Optional</span>[Tensor] = <span class="hljs-literal">None</span>,</span><br><span class="hljs-params">    edge_time: <span class="hljs-type">Optional</span>[Tensor] = <span class="hljs-literal">None</span>,</span><br><span class="hljs-params">    seed_time: <span class="hljs-type">Optional</span>[Tensor] = <span class="hljs-literal">None</span>,</span><br><span class="hljs-params">    edge_weight: <span class="hljs-type">Optional</span>[Tensor] = <span class="hljs-literal">None</span>,</span><br><span class="hljs-params">    csc: <span class="hljs-built_in">bool</span> = <span class="hljs-literal">False</span>,</span><br><span class="hljs-params">    replace: <span class="hljs-built_in">bool</span> = <span class="hljs-literal">False</span>,</span><br><span class="hljs-params">    directed: <span class="hljs-built_in">bool</span> = <span class="hljs-literal">True</span>,</span><br><span class="hljs-params">    disjoint: <span class="hljs-built_in">bool</span> = <span class="hljs-literal">False</span>,</span><br><span class="hljs-params">    temporal_strategy: <span class="hljs-built_in">str</span> = <span class="hljs-string">'uniform'</span>,</span><br><span class="hljs-params">    return_edge_id: <span class="hljs-built_in">bool</span> = <span class="hljs-literal">True</span>,</span><br><span class="hljs-params"></span>) -&gt; <span class="hljs-type">Tuple</span>[Tensor, Tensor, Tensor, <span class="hljs-type">Optional</span>[Tensor], <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>], <span class="hljs-type">List</span>[<span class="hljs-built_in">int</span>]]:<br></code></pre></td></tr></table></figure>
 <p><code>rowptr</code>: 压缩存储格式的源节点索引（Tensor）。</p>
 <p><code>col</code>: 目标节点索引（Tensor）。</p>
 <p><code>seed</code>: 种子节点索引（Tensor）。</p>
-<p><code>num_neighbors</code>: 每个节点在每次迭代中要采样的邻居数量（List[int]）。</p>
-<p>其他可选参数（如 <code>node_time</code>, <code>edge_time</code>, <code>edge_weight</code> 等）用于控制采样的特性。</p>
-<h5 id="返回值-6">返回值</h5>
+<p><code>num_neighbors</code>:
+每个节点在每次迭代中要采样的邻居数量（List[int]）。</p>
+<p>其他可选参数（如 <code>node_time</code>, <code>edge_time</code>,
+<code>edge_weight</code> 等）用于控制采样的特性。</p>
+<h5 id="返回值-5">返回值</h5>
 <p>返回一个元组，包含：</p>
 <ul>
 <li><code>row_indices</code>: 采样子图的源节点索引。</li>
@@ -640,107 +789,149 @@ mjx-container[display="true"] + br {
 <li><code>num_nodes_per_hop</code>: 每次迭代采样的节点数量。</li>
 <li><code>num_edges_per_hop</code>: 每次迭代采样的边数量。</li>
 </ul>
-<h5 id="具体实现-6">具体实现</h5>
-<p>该函数使用了 <code>torch.ops.pyg.neighbor_sample</code> 来实现图的邻居采样。输入的参数包括图的结构（通过 <code>rowptr</code> 和 <code>col</code> 表示），种子节点和采样配置。它支持多种采样方式（如有时间戳、采样替代等）。</p>
-<h3 id="3-2-hetero-neighbor-sample">3.2 hetero_neighbor_sample()</h3>
-<h5 id="功能描述-7">功能描述</h5>
-<p>类似于 <code>neighbor_sample</code>，但适用于异构图（包含多个节点类型和边类型）。该函数能够递归地从多个节点类型和边类型中进行邻居采样。</p>
-<h5 id="输入-2">输入</h5>
-<p><code>rowptr_dict</code>, <code>col_dict</code>: 分别是每个边类型的源节点和目标节点索引字典（<code>EdgeType -&gt; Tensor</code>）。</p>
-<p><code>seed_dict</code>: 种子节点的字典（<code>NodeType -&gt; Tensor</code>）。</p>
-<p><code>num_neighbors_dict</code>: 每个边类型的邻居数量字典（<code>EdgeType -&gt; List[int]</code>）。</p>
-<p>其他可选参数（如 <code>node_time_dict</code>, <code>edge_time_dict</code>, <code>edge_weight_dict</code> 等）用于控制异构图的采样。</p>
-<h5 id="返回值-7">返回值</h5>
+<h5 id="具体实现-5">具体实现</h5>
+<p>该函数使用了 <code>torch.ops.pyg.neighbor_sample</code>
+来实现图的邻居采样。输入的参数包括图的结构（通过 <code>rowptr</code> 和
+<code>col</code>
+表示），种子节点和采样配置。它支持多种采样方式（如有时间戳、采样替代等）。</p>
+<h3 id="hetero_neighbor_sample">3.2 hetero_neighbor_sample()</h3>
+<h5 id="功能描述-6">功能描述</h5>
+<p>类似于
+<code>neighbor_sample</code>，但适用于异构图（包含多个节点类型和边类型）。该函数能够递归地从多个节点类型和边类型中进行邻居采样。</p>
+<h5 id="输入-1">输入</h5>
+<p><code>rowptr_dict</code>, <code>col_dict</code>:
+分别是每个边类型的源节点和目标节点索引字典（<code>EdgeType -&gt; Tensor</code>）。</p>
+<p><code>seed_dict</code>:
+种子节点的字典（<code>NodeType -&gt; Tensor</code>）。</p>
+<p><code>num_neighbors_dict</code>:
+每个边类型的邻居数量字典（<code>EdgeType -&gt; List[int]</code>）。</p>
+<p>其他可选参数（如 <code>node_time_dict</code>,
+<code>edge_time_dict</code>, <code>edge_weight_dict</code>
+等）用于控制异构图的采样。</p>
+<h5 id="返回值-6">返回值</h5>
 <p>返回一个元组，包含：</p>
 <ul>
 <li><code>row_dict</code>: 每个边类型的源节点索引字典。</li>
 <li><code>col_dict</code>: 每个边类型的目标节点索引字典。</li>
 <li><code>node_id_dict</code>: 每个节点类型的采样节点索引字典。</li>
 <li><code>edge_id_dict</code>: 可选，每个边类型的原始边索引字典。</li>
-<li><code>num_nodes_per_hop_dict</code>: 每个边类型的每次迭代采样的节点数量字典。</li>
-<li><code>num_edges_per_hop_dict</code>: 每个边类型的每次迭代采样的边数量字典。</li>
+<li><code>num_nodes_per_hop_dict</code>:
+每个边类型的每次迭代采样的节点数量字典。</li>
+<li><code>num_edges_per_hop_dict</code>:
+每个边类型的每次迭代采样的边数量字典。</li>
 </ul>
-<h5 id="具体实现-7">具体实现</h5>
+<h5 id="具体实现-6">具体实现</h5>
 <p><strong>处理节点和边类型</strong></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python">src_node_types = {k[<span class="hljs-number">0</span>] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> rowptr_dict.keys()}<br>dst_node_types = {k[-<span class="hljs-number">1</span>] <span class="hljs-keyword">for</span> k <span class="hljs-keyword">in</span> rowptr_dict.keys()}<br>node_types = <span class="hljs-built_in">list</span>(src_node_types | dst_node_types)<br>edge_types = <span class="hljs-built_in">list</span>(rowptr_dict.keys())<br></code></pre></td></tr></table></figure>
 <ul>
-<li><code>src_node_types</code> 和 <code>dst_node_types</code> 提取图中所有源节点和目标节点的类型。</li>
-<li><code>node_types</code> 和 <code>edge_types</code> 是所有节点类型和边类型的列表。</li>
+<li><code>src_node_types</code> 和 <code>dst_node_types</code>
+提取图中所有源节点和目标节点的类型。</li>
+<li><code>node_types</code> 和 <code>edge_types</code>
+是所有节点类型和边类型的列表。</li>
 </ul>
 <p><strong>类型映射</strong></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">TO_REL_TYPE = {key: <span class="hljs-string">'__'</span>.join(key) <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> edge_types}<br>TO_EDGE_TYPE = {<span class="hljs-string">'__'</span>.join(key): key <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> edge_types}<br></code></pre></td></tr></table></figure>
 <ul>
-<li><code>TO_REL_TYPE</code> 和 <code>TO_EDGE_TYPE</code> 分别为边类型和关系类型提供了映射，用于在函数中使用不同的表示形式。</li>
+<li><code>TO_REL_TYPE</code> 和 <code>TO_EDGE_TYPE</code>
+分别为边类型和关系类型提供了映射，用于在函数中使用不同的表示形式。</li>
 </ul>
 <p><strong>格式化输入字典</strong></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python">rowptr_dict = {TO_REL_TYPE[k]: v <span class="hljs-keyword">for</span> k, v <span class="hljs-keyword">in</span> rowptr_dict.items()}<br>col_dict = {TO_REL_TYPE[k]: v <span class="hljs-keyword">for</span> k, v <span class="hljs-keyword">in</span> col_dict.items()}<br>num_neighbors_dict = {<br>    TO_REL_TYPE[k]: v<br>    <span class="hljs-keyword">for</span> k, v <span class="hljs-keyword">in</span> num_neighbors_dict.items()<br>}<br><span class="hljs-keyword">if</span> edge_time_dict <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:<br>    edge_time_dict = {TO_REL_TYPE[k]: v <span class="hljs-keyword">for</span> k, v <span class="hljs-keyword">in</span> edge_time_dict.items()}<br><span class="hljs-keyword">if</span> edge_weight_dict <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:<br>    edge_weight_dict = {<br>        TO_REL_TYPE[k]: v<br>        <span class="hljs-keyword">for</span> k, v <span class="hljs-keyword">in</span> edge_weight_dict.items()<br>    }<br></code></pre></td></tr></table></figure>
 <ul>
-<li>将输入的 <code>rowptr_dict</code>, <code>col_dict</code>, <code>num_neighbors_dict</code> 等字典中的键转换为统一的格式，例如使用 <code>'__'.join(key)</code> 合并边类型的元组，生成统一的字符串表示。</li>
+<li>将输入的 <code>rowptr_dict</code>, <code>col_dict</code>,
+<code>num_neighbors_dict</code> 等字典中的键转换为统一的格式，例如使用
+<code>'__'.join(key)</code>
+合并边类型的元组，生成统一的字符串表示。</li>
 </ul>
 <p><strong>调用 pyg-lib底层操作</strong></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs python">out = torch.ops.pyg.hetero_neighbor_sample(  <span class="hljs-comment">#</span><br>       node_types, edge_types, rowptr_dict, col_dict, seed_dict,<br>       num_neighbors_dict, node_time_dict, edge_time_dict, seed_time_dict,<br>       edge_weight_dict, csc, replace, directed, disjoint, temporal_strategy,<br>       return_edge_id)<br><br>   (row_dict, col_dict, node_id_dict, edge_id_dict, num_nodes_per_hop_dict,<br>    num_edges_per_hop_dict) = out<br></code></pre></td></tr></table></figure>
 <ul>
-<li>最终，函数会调用 <code>torch.ops.pyg.hetero_neighbor_sample</code> 来执行异构图上的邻居采样操作。这个操作会根据图的结构和参数配置采样邻居，并返回相关的采样信息。</li>
+<li>最终，函数会调用 <code>torch.ops.pyg.hetero_neighbor_sample</code>
+来执行异构图上的邻居采样操作。这个操作会根据图的结构和参数配置采样邻居，并返回相关的采样信息。</li>
 </ul>
 <p><strong>处理返回值</strong></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python">row_dict = {TO_EDGE_TYPE[k]: v <span class="hljs-keyword">for</span> k, v <span class="hljs-keyword">in</span> row_dict.items()}<br>  col_dict = {TO_EDGE_TYPE[k]: v <span class="hljs-keyword">for</span> k, v <span class="hljs-keyword">in</span> col_dict.items()}<br><br>  <span class="hljs-keyword">if</span> edge_id_dict <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:<br>      edge_id_dict = {TO_EDGE_TYPE[k]: v <span class="hljs-keyword">for</span> k, v <span class="hljs-keyword">in</span> edge_id_dict.items()}<br><br>  num_edges_per_hop_dict = {<br>      TO_EDGE_TYPE[k]: v<br>      <span class="hljs-keyword">for</span> k, v <span class="hljs-keyword">in</span> num_edges_per_hop_dict.items()<br>  }<br><br>  <span class="hljs-keyword">return</span> (row_dict, col_dict, node_id_dict, edge_id_dict,<br>          num_nodes_per_hop_dict, num_edges_per_hop_dict)<br></code></pre></td></tr></table></figure>
 <ul>
-<li>返回的结果包括采样后的子图的节点和边的索引信息。对于每种边类型，<code>row_dict</code> 和 <code>col_dict</code> 分别保存了源节点和目标节点的索引。</li>
-<li>如果要求返回边 ID，<code>edge_id_dict</code> 会保存相应的边 ID。</li>
-<li><code>num_nodes_per_hop_dict</code> 和 <code>num_edges_per_hop_dict</code> 分别记录了每一跳的节点数和边数。</li>
+<li>返回的结果包括采样后的子图的节点和边的索引信息。对于每种边类型，<code>row_dict</code>
+和 <code>col_dict</code> 分别保存了源节点和目标节点的索引。</li>
+<li>如果要求返回边 ID，<code>edge_id_dict</code> 会保存相应的边
+ID。</li>
+<li><code>num_nodes_per_hop_dict</code> 和
+<code>num_edges_per_hop_dict</code>
+分别记录了每一跳的节点数和边数。</li>
 </ul>
-<h3 id="3-3-subgraph">3.3 subgraph()</h3>
-<h4 id="功能描述-8">功能描述</h4>
+<h3 id="subgraph">3.3 subgraph()</h3>
+<h4 id="功能描述-7">功能描述</h4>
 <p>从原始图中返回一个子图，该子图包含指定节点的所有邻居节点及其边。</p>
-<h4 id="输入-3">输入</h4>
+<h4 id="输入-2">输入</h4>
 <p><code>rowptr</code>: 压缩存储格式的源节点索引（Tensor）。</p>
 <p><code>col</code>: 目标节点索引（Tensor）。</p>
 <p><code>nodes</code>: 要提取的节点索引（Tensor）。</p>
 <p><code>return_edge_id</code>: 是否返回边的索引（Boolean）。</p>
-<h4 id="返回值-8">返回值</h4>
+<h4 id="返回值-7">返回值</h4>
 <p>返回一个元组，包含：</p>
 <ul>
 <li><code>row_indices</code>: 子图的源节点索引。</li>
 <li><code>col_indices</code>: 子图的目标节点索引。</li>
 <li><code>edge_id</code>: 可选，返回原始图中的边索引。</li>
 </ul>
-<h4 id="具体实现-8">具体实现</h4>
-<p>该函数通过 <code>torch.ops.pyg.subgraph</code> 来提取指定节点的子图。输入的参数包括图的边的表示方式（<code>rowptr</code> 和 <code>col</code>），以及需要提取的节点（<code>nodes</code>）。</p>
-<h3 id="3-4-random-walk">3.4 random_walk()</h3>
-<h4 id="功能描述-9">功能描述</h4>
-<p>从种子节点开始，按照指定的步长和控制参数进行随机游走，模拟了类似于 <code>node2vec</code> 算法的行为。</p>
-<h4 id="输入-4">输入</h4>
+<h4 id="具体实现-7">具体实现</h4>
+<p>该函数通过 <code>torch.ops.pyg.subgraph</code>
+来提取指定节点的子图。输入的参数包括图的边的表示方式（<code>rowptr</code>
+和 <code>col</code>），以及需要提取的节点（<code>nodes</code>）。</p>
+<h3 id="random_walk">3.4 random_walk()</h3>
+<h4 id="功能描述-8">功能描述</h4>
+<p>从种子节点开始，按照指定的步长和控制参数进行随机游走，模拟了类似于
+<code>node2vec</code> 算法的行为。</p>
+<h4 id="输入-3">输入</h4>
 <p><code>rowptr</code>: 压缩存储格式的源节点索引（Tensor）。</p>
 <p><code>col</code>: 目标节点索引（Tensor）。</p>
 <p><code>seed</code>: 随机游走的起始节点（Tensor）。</p>
 <p><code>walk_length</code>: 随机游走的步长（int）。</p>
 <p><code>p</code>, <code>q</code>: 控制随机游走的策略（float）。</p>
-<h4 id="返回值-9">返回值</h4>
-<p>返回一个Tensor，表示每个种子节点的随机游走结果，形状为 <code>[seed.size(0), walk_length + 1]</code>，其中每一行是一个游走路径。</p>
-<h4 id="具体实现-9">具体实现</h4>
-<p>使用 <code>torch.ops.pyg.random_walk</code> 来执行随机游走。通过设置不同的控制参数 <code>p</code> 和 <code>q</code>，可以调整游走的策略（广度优先或深度优先）。</p>
-<h2 id="4-partition">4. partition</h2>
-<h3 id="4-1metis">4.1metis()</h3>
-<h4 id="功能描述-10">功能描述</h4>
-<p>该函数实现了基于 METIS 算法的图划分功能，METIS 是一个广泛应用于图划分的库，常用于将图分割成多个子图，以减少跨子图的边数。这个功能在深度图神经网络中非常重要，特别是在处理大型图时，能够提高计算效率和降低内存消耗。此函数实现了基于图的压缩表示（CSR 格式）来执行图划分。</p>
-<h4 id="输入-5">输入</h4>
-<p><strong><code>rowptr</code></strong> (<code>Tensor</code>):<br>
-压缩的源节点索引，通常是图的 CSR（Compressed Sparse Row）格式中的 <code>rowptr</code> 部分，表示每一行的起始位置。</p>
-<p><strong><code>col</code></strong> (<code>Tensor</code>):<br>
-目标节点索引，通常是图的 CSR 格式中的 <code>col</code> 部分，表示每行对应的目标节点。</p>
-<p><strong><code>num_partitions</code></strong> (<code>int</code>):<br>
+<h4 id="返回值-8">返回值</h4>
+<p>返回一个Tensor，表示每个种子节点的随机游走结果，形状为
+<code>[seed.size(0), walk_length + 1]</code>，其中每一行是一个游走路径。</p>
+<h4 id="具体实现-8">具体实现</h4>
+<p>使用 <code>torch.ops.pyg.random_walk</code>
+来执行随机游走。通过设置不同的控制参数 <code>p</code> 和
+<code>q</code>，可以调整游走的策略（广度优先或深度优先）。</p>
+<h2 id="partition">4. partition</h2>
+<h3 id="metis">4.1metis()</h3>
+<h4 id="功能描述-9">功能描述</h4>
+<p>该函数实现了基于 METIS 算法的图划分功能，METIS
+是一个广泛应用于图划分的库，常用于将图分割成多个子图，以减少跨子图的边数。这个功能在深度图神经网络中非常重要，特别是在处理大型图时，能够提高计算效率和降低内存消耗。此函数实现了基于图的压缩表示（CSR
+格式）来执行图划分。</p>
+<h4 id="输入-4">输入</h4>
+<p><strong><code>rowptr</code></strong> (<code>Tensor</code>):
+压缩的源节点索引，通常是图的 CSR（Compressed Sparse Row）格式中的
+<code>rowptr</code> 部分，表示每一行的起始位置。</p>
+<p><strong><code>col</code></strong> (<code>Tensor</code>):
+目标节点索引，通常是图的 CSR 格式中的 <code>col</code>
+部分，表示每行对应的目标节点。</p>
+<p><strong><code>num_partitions</code></strong> (<code>int</code>):
 图划分的子图数量，指定将图分成多少个子图。</p>
-<p><strong><code>node_weight</code></strong> (<code>Optional[Tensor]</code>):<br>
-节点的权重。每个节点可能有一个与其重要性或计算负担相关的权重，这个权重会影响节点在图划分中的分配。如果未提供，默认权重为 1。</p>
-<p><strong><code>edge_weight</code></strong> (<code>Optional[Tensor]</code>):<br>
-边的权重。每条边可能有一个权重，表示连接两个节点的“强度”。边权重较大的边通常希望保留在同一个分区中。默认值为 <code>None</code>，表示边权重均为 1。</p>
-<p><strong><code>recursive</code></strong> (<code>bool</code>):<br>
-是否使用多级递归二分法（recursive bisection）来划分图。递归方法通过逐步将图划分成更小的部分，再进行进一步的划分，直到最终达到指定的分区数量。与此相对的是 K-分区方法，它直接将图分成指定数量的子图。</p>
-<h4 id="返回值-10">返回值</h4>
-<p><strong><code>Tensor</code></strong>:<br>
-函数返回一个向量，其中每个元素代表图中每个节点所属的分区。这个向量的长度等于节点数量，每个节点的值表示该节点所属的子图编号（从 0 到 <code>num_partitions - 1</code>）。</p>
-<h4 id="具体实现-10">具体实现</h4>
-<p>最终，函数通过调用 <code>torch.ops.pyg.metis</code> 来执行图的划分操作。这一操作是通过 PyTorch 的操作接口封装的，实际上是调用底层 METIS 库来完成图的划分任务。METIS 使用高效的图划分算法来尽量减少跨分区的边数。</p>
+<p><strong><code>node_weight</code></strong>
+(<code>Optional[Tensor]</code>):
+节点的权重。每个节点可能有一个与其重要性或计算负担相关的权重，这个权重会影响节点在图划分中的分配。如果未提供，默认权重为
+1。</p>
+<p><strong><code>edge_weight</code></strong>
+(<code>Optional[Tensor]</code>):
+边的权重。每条边可能有一个权重，表示连接两个节点的“强度”。边权重较大的边通常希望保留在同一个分区中。默认值为
+<code>None</code>，表示边权重均为 1。</p>
+<p><strong><code>recursive</code></strong> (<code>bool</code>):
+是否使用多级递归二分法（recursive
+bisection）来划分图。递归方法通过逐步将图划分成更小的部分，再进行进一步的划分，直到最终达到指定的分区数量。与此相对的是
+K-分区方法，它直接将图分成指定数量的子图。</p>
+<h4 id="返回值-9">返回值</h4>
+<p><strong><code>Tensor</code></strong>:
+函数返回一个向量，其中每个元素代表图中每个节点所属的分区。这个向量的长度等于节点数量，每个节点的值表示该节点所属的子图编号（从
+0 到 <code>num_partitions - 1</code>）。</p>
+<h4 id="具体实现-9">具体实现</h4>
+<p>最终，函数通过调用 <code>torch.ops.pyg.metis</code>
+来执行图的划分操作。这一操作是通过 PyTorch
+的操作接口封装的，实际上是调用底层 METIS 库来完成图的划分任务。METIS
+使用高效的图划分算法来尽量减少跨分区的边数。</p>
 
                 
               </div>

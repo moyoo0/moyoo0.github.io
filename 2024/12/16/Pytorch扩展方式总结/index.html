@@ -297,67 +297,80 @@
             
               <div class="markdown-body">
                 
-                <h1>Pytorch扩展方式总结</h1>
-<h2 id="1-使用-torch-提供的-Python-API">1. 使用 <code>torch</code> 提供的 Python API</h2>
-<p>该方式仅依赖 PyTorch 的现有功能，进行小规模扩展，不需要自定义底层操作。例如我们通过 PyTorch 的现有模块，如 <code>torch.nn.Module</code> 或函数操作，创建新功能。</p>
+                <h1 id="pytorch扩展方式总结">Pytorch扩展方式总结</h1>
+<h2 id="使用-torch-提供的-python-api">1. 使用 <code>torch</code> 提供的
+Python API</h2>
+<p>该方式仅依赖 PyTorch
+的现有功能，进行小规模扩展，不需要自定义底层操作。例如我们通过 PyTorch
+的现有模块，如 <code>torch.nn.Module</code> 或函数操作，创建新功能。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> torch<br><span class="hljs-keyword">import</span> torch.nn <span class="hljs-keyword">as</span> nn<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">CustomLayer</span>(nn.Module):<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, input_dim, output_dim</span>):<br>        <span class="hljs-built_in">super</span>().__init__()<br>        <span class="hljs-variable language_">self</span>.linear = nn.Linear(input_dim, output_dim)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">forward</span>(<span class="hljs-params">self, x</span>):<br>        <span class="hljs-keyword">return</span> torch.relu(<span class="hljs-variable language_">self</span>.linear(x))<br><br>layer = CustomLayer(<span class="hljs-number">10</span>, <span class="hljs-number">5</span>)<br>output = layer(torch.randn(<span class="hljs-number">2</span>, <span class="hljs-number">10</span>))<br><br></code></pre></td></tr></table></figure>
 <p>我们也可以集成torch.autograd.Function，来进行自定义的前向传播和后向传播操作。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> torch<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">MyFunction</span>(torch.autograd.Function):<br><span class="hljs-meta">    @staticmethod</span><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">forward</span>(<span class="hljs-params">ctx, <span class="hljs-built_in">input</span></span>):<br>        ctx.save_for_backward(<span class="hljs-built_in">input</span>)<br>        <span class="hljs-keyword">return</span> <span class="hljs-built_in">input</span> ** <span class="hljs-number">2</span><br><br><span class="hljs-meta">    @staticmethod</span><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">backward</span>(<span class="hljs-params">ctx, grad_output</span>):<br>        <span class="hljs-built_in">input</span>, = ctx.saved_tensors<br>        <span class="hljs-keyword">return</span> grad_output * <span class="hljs-number">2</span> * <span class="hljs-built_in">input</span><br><br>custom_op = MyFunction.apply<br>x = torch.tensor([<span class="hljs-number">1.0</span>, <span class="hljs-number">2.0</span>, <span class="hljs-number">3.0</span>], requires_grad=<span class="hljs-literal">True</span>)<br>y = custom_op(x)<br>y.<span class="hljs-built_in">sum</span>().backward()<br><br></code></pre></td></tr></table></figure>
-<h2 id="2-用-TORCH-LIBRARY-宏注册-C-cuda扩展">2.用 <code>TORCH_LIBRARY</code> 宏注册 C++ /cuda扩展</h2>
+<h2 id="用-torch_library-宏注册-c-cuda扩展">2.用
+<code>TORCH_LIBRARY</code> 宏注册 C++ /cuda扩展</h2>
 <p>该方式尝试用于需要注册多个底层操作，且提供对设备和数据类型的多重支持。</p>
-<p>例如：用 <code>TORCH_LIBRARY</code> 宏注册操作，结合 <code>TORCH_LIBRARY_IMPL</code> 实现设备分发。</p>
+<p>例如：用 <code>TORCH_LIBRARY</code> 宏注册操作，结合
+<code>TORCH_LIBRARY_IMPL</code> 实现设备分发。</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;torch/extension.h&gt;</span></span><br><br><span class="hljs-function">torch::Tensor <span class="hljs-title">custom_op_cpu</span><span class="hljs-params">(torch::Tensor input)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> input + <span class="hljs-number">1</span>;<br>&#125;<br><br><span class="hljs-function">torch::Tensor <span class="hljs-title">custom_op_cuda</span><span class="hljs-params">(torch::Tensor input)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> input + <span class="hljs-number">2</span>;  <span class="hljs-comment">// CUDA 实现</span><br>&#125;<br><br><span class="hljs-built_in">TORCH_LIBRARY</span>(custom_ops, m) &#123;<br>    m.<span class="hljs-built_in">def</span>(<span class="hljs-string">&quot;custom_op&quot;</span>, custom_op_cpu);  <span class="hljs-comment">// 默认 CPU 实现</span><br>&#125;<br><br><span class="hljs-built_in">TORCH_LIBRARY_IMPL</span>(custom_ops, CUDA, m) &#123;<br>    m.<span class="hljs-built_in">impl</span>(<span class="hljs-string">&quot;custom_op&quot;</span>, custom_op_cuda);  <span class="hljs-comment">// CUDA 实现</span><br>&#125;<br><br></code></pre></td></tr></table></figure>
 <p>接下来简单介绍一下pytorch提供的常用于扩展的宏：</p>
-<h3 id="2-1-TORCH-LIBRARY">2.1 TORCH_LIBRARY</h3>
+<h3 id="torch_library">2.1 TORCH_LIBRARY</h3>
 <p>用于定义一个新的操作库，注册与库名称相关的操作。通常是扩展的入口点。</p>
-<h4 id="用法：">用法：</h4>
+<h4 id="用法">用法：</h4>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-built_in">TORCH_LIBRARY</span>(pyg, m) &#123;<br>    m.<span class="hljs-built_in">def</span>(<span class="hljs-string">&quot;segment_matmul(Tensor input, Tensor ptr, Tensor other) -&gt; Tensor&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
-<h4 id="说明：">说明：</h4>
+<h4 id="说明">说明：</h4>
 <ul>
 <li><code>pyg</code> 是库的名称。</li>
-<li><code>m.def</code> 用于注册操作的接口（签名），这些签名对应 Python 中的 <code>torch.ops.pyg.segment_matmul</code>。</li>
+<li><code>m.def</code> 用于注册操作的接口（签名），这些签名对应 Python
+中的 <code>torch.ops.pyg.segment_matmul</code>。</li>
 <li>该宏会生成全局的库管理器，其他设备实现或扩展都会与此库关联。</li>
 </ul>
-<h3 id="2-2-TORCH-LIBRARY-IMPL">2.2 TORCH_LIBRARY_IMPL</h3>
+<h3 id="torch_library_impl">2.2 TORCH_LIBRARY_IMPL</h3>
 <p>用于为特定设备（如 CPU 或 CUDA）实现上述注册的操作。</p>
-<h4 id="用法：-2">用法：</h4>
+<h4 id="用法-1">用法：</h4>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-built_in">TORCH_LIBRARY_IMPL</span>(pyg, CUDA, m) &#123;<br>    m.<span class="hljs-built_in">impl</span>(<span class="hljs-string">&quot;segment_matmul&quot;</span>, <span class="hljs-built_in">TORCH_FN</span>(segment_matmul_kernel));<br>&#125;<br></code></pre></td></tr></table></figure>
-<h4 id="说明：-2">说明：</h4>
+<h4 id="说明-1">说明：</h4>
 <ul>
 <li><code>pyg</code>：与之前定义的库名称保持一致。</li>
-<li><code>CUDA</code>：指定设备实现，可用的设备包括 <code>CPU</code>, <code>CUDA</code>, <code>HIP</code> 等。</li>
+<li><code>CUDA</code>：指定设备实现，可用的设备包括 <code>CPU</code>,
+<code>CUDA</code>, <code>HIP</code> 等。</li>
 <li><code>m.impl</code>：注册特定设备的实现。</li>
-<li><code>TORCH_FN</code>：将实现的函数（如 <code>segment_matmul_kernel</code>）封装为通用接口</li>
+<li><code>TORCH_FN</code>：将实现的函数（如
+<code>segment_matmul_kernel</code>）封装为通用接口</li>
 </ul>
-<h3 id="2-3-TORCH-FN">2.3 TORCH_FN</h3>
+<h3 id="torch_fn">2.3 TORCH_FN</h3>
 <p>将 C++ 函数指针转换为 PyTorch 注册系统可接受的形式。</p>
-<h4 id="用法：-3">用法：</h4>
+<h4 id="用法-2">用法：</h4>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++">m.<span class="hljs-built_in">impl</span>(<span class="hljs-string">&quot;segment_matmul&quot;</span>, <span class="hljs-built_in">TORCH_FN</span>(segment_matmul_kernel));<br></code></pre></td></tr></table></figure>
-<h4 id="说明：-3">说明：</h4>
+<h4 id="说明-2">说明：</h4>
 <ul>
 <li>适用于无状态的函数注册，简化了函数绑定过程。</li>
-<li>如果需要绑定具有上下文的类成员函数，可使用其他形式（如 <code>std::bind</code>）。</li>
+<li>如果需要绑定具有上下文的类成员函数，可使用其他形式（如
+<code>std::bind</code>）。</li>
 </ul>
-<h3 id="2-4-TORCH-LIBRARY-FRAGMENT">2.4 TORCH_LIBRARY_FRAGMENT</h3>
+<h3 id="torch_library_fragment">2.4 TORCH_LIBRARY_FRAGMENT</h3>
 <p>允许在不同的文件中对同一个库的扩展进行分段实现。</p>
-<h4 id="用法：-4">用法：</h4>
+<h4 id="用法-3">用法：</h4>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-built_in">TORCH_LIBRARY_FRAGMENT</span>(pyg, m) &#123;<br>    m.<span class="hljs-built_in">def</span>(<span class="hljs-string">&quot;grouped_matmul(Tensor[] inputs, Tensor[] others, Tensor[] biases) -&gt; Tensor[]&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
-<h4 id="说明：-4">说明：</h4>
+<h4 id="说明-3">说明：</h4>
 <ul>
-<li><code>TORCH_LIBRARY_FRAGMENT</code> 不会重复创建库，而是扩展现有库。</li>
+<li><code>TORCH_LIBRARY_FRAGMENT</code>
+不会重复创建库，而是扩展现有库。</li>
 <li>非常适合分模块开发。</li>
 </ul>
-<h2 id="3-使用-pybind11-直接扩展-C-CUDA">3. 使用 <code>pybind11</code> 直接扩展 C++/CUDA</h2>
-<h3 id="适用场景：">适用场景：</h3>
+<h2 id="使用-pybind11-直接扩展-ccuda">3. 使用 <code>pybind11</code>
+直接扩展 C++/CUDA</h2>
+<h3 id="适用场景">适用场景：</h3>
 <ul>
 <li>更底层的扩展需求。</li>
 <li>不需要与 PyTorch 的张量操作深度绑定。</li>
 </ul>
-<h3 id="方法：">方法：</h3>
-<p>通过 <code>pybind11</code> 将 C++ 方法导出为 Python 模块，并手动管理张量操作。</p>
+<h3 id="方法">方法：</h3>
+<p>通过 <code>pybind11</code> 将 C++ 方法导出为 Python
+模块，并手动管理张量操作。</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;pybind11/pybind11.h&gt;</span></span><br><br><span class="hljs-function"><span class="hljs-type">float</span> <span class="hljs-title">add</span><span class="hljs-params">(<span class="hljs-type">float</span> a, <span class="hljs-type">float</span> b)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> a + b;<br>&#125;<br><br><span class="hljs-built_in">PYBIND11_MODULE</span>(custom_pybind, m) &#123;<br>    m.<span class="hljs-built_in">def</span>(<span class="hljs-string">&quot;add&quot;</span>, &amp;add, <span class="hljs-string">&quot;Add two numbers&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>使用方法：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> custom_pybind<br><span class="hljs-built_in">print</span>(custom_pybind.add(<span class="hljs-number">1.0</span>, <span class="hljs-number">2.0</span>))  <span class="hljs-comment"># 输出: 3.0</span><br></code></pre></td></tr></table></figure>
+
                 
               </div>
             

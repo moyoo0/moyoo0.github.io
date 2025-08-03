@@ -27,7 +27,7 @@
 <meta property="og:description" content="MCP Server MCP Server 是大语言模型（LLM）获取外部能力和数据的一套标准化服务。它完全受控于调用方，只负责执行指令，不具备主动决策或推理能力。其功能涵盖多种工具，例如 Fetch MCP Server 用于网络抓取，而 Google Drive MCP Server 则可用于文件访问。简而言之，它是一个被动的执行者，而非主动的决策者。 sequenceDiagram">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-08-03T15:03:33.000Z">
-<meta property="article:modified_time" content="2025-08-03T15:55:53.741Z">
+<meta property="article:modified_time" content="2025-08-03T16:04:25.627Z">
 <meta property="article:author" content="moyoo">
 <meta property="article:tag" content="大模型应用开发">
 <meta name="twitter:card" content="summary_large_image">
@@ -308,6 +308,7 @@ Fetch MCP Server 用于网络抓取，而 Google Drive MCP Server
     participant MCP-Client
     participant LLM
     participant MCP-Server
+    
 User-&gt;&gt;MCP-Client: 发送请求
 activate MCP-Client
 MCP-Client-&gt;&gt;LLM: 传递用户查询及工具描述
@@ -316,7 +317,7 @@ LLM--&gt;&gt;MCP-Client: 返回需调用的工具指令
 deactivate LLM
 MCP-Client-&gt;&gt;MCP-Server: 执行工具调用 (HTTP/SSE或stdio)
 activate MCP-Server
-MCP-Server--&gt;&gt;MCP-Client: 返回执行结果
+MCP-Server--&gt;&gt;MCP-Client: 返回执行结果 
 deactivate MCP-Server
 MCP-Client--&gt;LLM: 传递工具执行结果
 activate LLM

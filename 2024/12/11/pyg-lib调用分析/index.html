@@ -19,12 +19,12 @@
   <meta name="author" content="moyoo">
   <meta name="keywords" content="">
   
-    <meta name="description" content="1. 概要 该文档主要对pyg-lib从python顶层至c++&#x2F;cuda底层的调用链进行分析。并分析了setup.py以及CmakeLists.txt以了解整个项目的编译以及安装过程。  以上为pyg-lib由顶层至底层的调用链，在第二节以例子的形式进行分析。 2. 函数调用分析 2.1 index_sort() index_sort()实现了一个高效的排序算法，在顶层部分直接调用由底层c++注">
+    <meta name="description" content="1. 概要 该文档主要对pyg-lib从python顶层至c++&#x2F;cuda底层的调用链进行分析。并分析了setup.py以及CmakeLists.txt以了解整个项目的编译以及安装过程。   pyg-lib调用链  以上为pyg-lib由顶层至底层的调用链，在第二节以例子的形式进行分析。 2. 函数调用分析 2.1 index_sort() index_sort()实现了一个高效的排序算法，在顶层">
 <meta property="og:type" content="article">
 <meta property="og:title" content="pyg-lib调用分析">
 <meta property="og:url" content="http://moyoo0.github.io/2024/12/11/pyg-lib%E8%B0%83%E7%94%A8%E5%88%86%E6%9E%90/index.html">
 <meta property="og:site_name" content="moyoo">
-<meta property="og:description" content="1. 概要 该文档主要对pyg-lib从python顶层至c++&#x2F;cuda底层的调用链进行分析。并分析了setup.py以及CmakeLists.txt以了解整个项目的编译以及安装过程。  以上为pyg-lib由顶层至底层的调用链，在第二节以例子的形式进行分析。 2. 函数调用分析 2.1 index_sort() index_sort()实现了一个高效的排序算法，在顶层部分直接调用由底层c++注">
+<meta property="og:description" content="1. 概要 该文档主要对pyg-lib从python顶层至c++&#x2F;cuda底层的调用链进行分析。并分析了setup.py以及CmakeLists.txt以了解整个项目的编译以及安装过程。   pyg-lib调用链  以上为pyg-lib由顶层至底层的调用链，在第二节以例子的形式进行分析。 2. 函数调用分析 2.1 index_sort() index_sort()实现了一个高效的排序算法，在顶层">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://moyoo0.github.io/2024/12/11/pyg-lib%E8%B0%83%E7%94%A8%E5%88%86%E6%9E%90/pyg-lib%E8%B0%83%E7%94%A8%E9%93%BE.jpg">
 <meta property="article:published_time" content="2024-12-11T08:43:51.000Z">
@@ -412,39 +412,51 @@ mjx-container[display="true"] + br {
             
               <div class="markdown-body">
                 
-                <h2 id="1-概要">1. 概要</h2>
+                <h2 id="概要">1. 概要</h2>
 <p>该文档主要对pyg-lib从python顶层至c++/cuda底层的调用链进行分析。并分析了setup.py以及CmakeLists.txt以了解整个项目的编译以及安装过程。</p>
-<p><img src="/2024/12/11/pyg-lib%E8%B0%83%E7%94%A8%E5%88%86%E6%9E%90/pyg-lib%E8%B0%83%E7%94%A8%E9%93%BE.jpg" srcset="/img/loading.gif" lazyload alt="pyg-lib调用链"></p>
+<figure>
+<img src="/2024/12/11/pyg-lib%E8%B0%83%E7%94%A8%E5%88%86%E6%9E%90/pyg-lib调用链.jpg" srcset="/img/loading.gif" lazyload alt="pyg-lib调用链">
+<figcaption aria-hidden="true">pyg-lib调用链</figcaption>
+</figure>
 <p>以上为pyg-lib由顶层至底层的调用链，在第二节以例子的形式进行分析。</p>
-<h2 id="2-函数调用分析">2. 函数调用分析</h2>
-<h3 id="2-1-index-sort">2.1 index_sort()</h3>
+<h2 id="函数调用分析">2. 函数调用分析</h2>
+<h3 id="index_sort">2.1 index_sort()</h3>
 <p>index_sort()实现了一个高效的排序算法，在顶层部分直接调用由底层c++注册的操作</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> inputs.is_cpu:<br>    <span class="hljs-keyword">return</span> torch.sort(inputs)<br><span class="hljs-keyword">return</span> torch.ops.pyg.index_sort(inputs, max_value)<br></code></pre></td></tr></table></figure>
 <p>由于只提供了cpu加速，因此该函数不涉及cuda代码。其中ops为pyg自定义的操作空间，c++代码的定义在csrc目录下。</p>
-<h4 id="2-1-1-index-sort-cpp">2.1.1 index_sort.cpp</h4>
+<h4 id="index_sort.cpp">2.1.1 index_sort.cpp</h4>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;ATen/core/dispatch/Dispatcher.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;torch/library.h&gt;</span></span><br><br><span class="hljs-keyword">namespace</span> pyg {<br><span class="hljs-keyword">namespace</span> ops {<br><br><span class="hljs-built_in">TORCH_LIBRARY_FRAGMENT</span>(pyg, m) {<br>  m.<span class="hljs-built_in">def</span>(<span class="hljs-built_in">TORCH_SELECTIVE_SCHEMA</span>(<br>      <span class="hljs-string">"pyg::index_sort(Tensor indices, int? max = None) -&gt; (Tensor, Tensor)"</span>));<br>}<br><br>}  <span class="hljs-comment">// namespace ops</span><br>}  <span class="hljs-comment">// namespace pyg</span><br><br></code></pre></td></tr></table></figure>
-<p>这一部分用c++实现了index_sort的操作接口，只声明index_sort()的参数表。使用 <code>TORCH_LIBRARY_FRAGMENT</code> 注册操作的名称和签名（schema）。<code>TORCH_LIBRARY_FRAGMENT</code>和<code>TORCH_SELECTIVE_SCHEMA</code>均由pytorch提供。</p>
-<h4 id="2-1-2-index-sort-kernal-cpp">2.1.2 index_sort_kernal.cpp</h4>
+<p>这一部分用c++实现了index_sort的操作接口，只声明index_sort()的参数表。使用
+<code>TORCH_LIBRARY_FRAGMENT</code>
+注册操作的名称和签名（schema）。<code>TORCH_LIBRARY_FRAGMENT</code>和<code>TORCH_SELECTIVE_SCHEMA</code>均由pytorch提供。</p>
+<h4 id="index_sort_kernal.cpp">2.1.2 index_sort_kernal.cpp</h4>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;tuple&gt;</span></span><br><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;ATen/ATen.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;ATen/Parallel.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;torch/library.h&gt;</span></span><br><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">"radix_sort.h"</span></span><br><br><span class="hljs-keyword">namespace</span> pyg {<br><span class="hljs-keyword">namespace</span> ops {<br><br><span class="hljs-keyword">namespace</span> {<br><br><span class="hljs-function">std::tuple&lt;at::Tensor, at::Tensor&gt; <span class="hljs-title">index_sort_kernel</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> at::Tensor&amp; input,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> at::optional&lt;<span class="hljs-type">int64_t</span>&gt; max)</span> </span>{<br> <span class="hljs-comment">//具体实现</span><br><br>}  <span class="hljs-comment">// namespace</span><br><br><span class="hljs-built_in">TORCH_LIBRARY_IMPL</span>(pyg, CPU, m) {<br>  m.<span class="hljs-built_in">impl</span>(<span class="hljs-built_in">TORCH_SELECTIVE_NAME</span>(<span class="hljs-string">"pyg::index_sort"</span>), <span class="hljs-built_in">TORCH_FN</span>(index_sort_kernel));<br>}<br><br>}  <span class="hljs-comment">// namespace ops</span><br>}  <span class="hljs-comment">// namespace pyg</span><br><br></code></pre></td></tr></table></figure>
 <p>这里是<code>index_sort()</code>方法的核心实现，被命名为<code>index_sort_kernal()</code>。通过<code>TORCH_LIBRARY_IMPL</code>将<code>index_sort_kernel</code>绑定到<code>index_sort</code>接口，当上层调用<code>index_sort</code>时将自动使用<code>index_sort_kernal()</code>实现。</p>
-<h3 id="2-2-softmax">2.2 softmax()</h3>
+<h3 id="softmax">2.2 softmax()</h3>
 <p>pyg-lib对于<code>softmax()</code>函数也仅仅提供了cpu加速，因此不涉及cuda，但与<code>index_sort()</code>不同，其实现涉及<code>autograd</code>。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">dim = dim + src.dim() <span class="hljs-keyword">if</span> dim &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> dim<br><span class="hljs-keyword">return</span> torch.ops.pyg.softmax_csr(src, ptr, dim)<br></code></pre></td></tr></table></figure>
 <p>其顶层在对<code>dim</code>进行条件判断之后，便直接调用了底层的c++实现。</p>
-<h4 id="2-2-1-softmax-h-softmax-cpp">2.2.1 softmax.h softmax.cpp</h4>
-<p>这两个文件用于为<code>softmax()</code>绑定接口。由于<code>softmax_csr</code> 在计算时涉及到的操作是自定义的、需要梯度计算的操作，因此需要因此需要使用 <code>c10::Dispatcher</code> 来进行调度并确保操作的正确性。</p>
+<h4 id="softmax.h-softmax.cpp">2.2.1 softmax.h softmax.cpp</h4>
+<p>这两个文件用于为<code>softmax()</code>绑定接口。由于<code>softmax_csr</code>
+在计算时涉及到的操作是自定义的、需要梯度计算的操作，因此需要因此需要使用
+<code>c10::Dispatcher</code> 来进行调度并确保操作的正确性。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Performs softmax operations for each group.</span><br><span class="hljs-function">PYG_API at::Tensor <span class="hljs-title">softmax_csr</span><span class="hljs-params">(<span class="hljs-type">const</span> at::Tensor&amp; src,</span></span><br><span class="hljs-params"><span class="hljs-function">                               <span class="hljs-type">const</span> at::Tensor&amp; ptr,</span></span><br><span class="hljs-params"><span class="hljs-function">                               <span class="hljs-type">const</span> <span class="hljs-type">int64_t</span> dim)</span> </span>{<br>  at::TensorArg src_arg{src, <span class="hljs-string">"src"</span>, <span class="hljs-number">0</span>};<br>  at::TensorArg ptr_arg{ptr, <span class="hljs-string">"ptr"</span>, <span class="hljs-number">1</span>};<br>  at::CheckedFrom c{<span class="hljs-string">"softmax_csr"</span>};<br><br>  at::<span class="hljs-built_in">checkAllDefined</span>(c, {src_arg, ptr_arg});<br>  at::<span class="hljs-built_in">checkContiguous</span>(c, src_arg);<br>  at::<span class="hljs-built_in">checkContiguous</span>(c, ptr_arg);<br><br>  <span class="hljs-type">static</span> <span class="hljs-keyword">auto</span> op = c10::Dispatcher::<span class="hljs-built_in">singleton</span>()<br>                       .<span class="hljs-built_in">findSchemaOrThrow</span>(<span class="hljs-string">"pyg::softmax_csr"</span>, <span class="hljs-string">""</span>)<br>                       .<span class="hljs-built_in">typed</span>&lt;<span class="hljs-keyword">decltype</span>(softmax_csr)&gt;();<br>  <span class="hljs-keyword">return</span> op.<span class="hljs-built_in">call</span>(src, ptr, dim);<br>}<br><br><span class="hljs-comment">// Computes gradient for grouped softmax operation.</span><br><span class="hljs-function">PYG_API at::Tensor <span class="hljs-title">softmax_csr_backward</span><span class="hljs-params">(<span class="hljs-type">const</span> at::Tensor&amp; out,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">const</span> at::Tensor&amp; out_grad,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">const</span> at::Tensor&amp; ptr,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">const</span> <span class="hljs-type">int64_t</span> dim)</span> </span>{<br>	<span class="hljs-comment">//与上面类似的检查</span><br>  <span class="hljs-keyword">return</span> op.<span class="hljs-built_in">call</span>(out, out_grad, ptr, dim);<br>}<br></code></pre></td></tr></table></figure>
-<p>这里使用<code>PYG_API</code>来定义两个函数接口，该宏由pyg-lib定义，主要用于跨平台符号的导出和导入控制，特别是针对 Windows 和其他操作系统的 DLL 处理。接口的检查与调用逻辑如下：</p>
+<p>这里使用<code>PYG_API</code>来定义两个函数接口，该宏由pyg-lib定义，主要用于跨平台符号的导出和导入控制，特别是针对
+Windows 和其他操作系统的 DLL 处理。接口的检查与调用逻辑如下：</p>
 <p><strong>输入检查：</strong></p>
 <ul>
 <li><code>at::checkAllDefined</code> 确保输入张量都已定义。</li>
-<li><code>at::checkContiguous</code> 检查输入是否是连续的内存布局（某些操作依赖此特性）。</li>
+<li><code>at::checkContiguous</code>
+检查输入是否是连续的内存布局（某些操作依赖此特性）。</li>
 </ul>
 <p><strong>操作查找：</strong></p>
 <ul>
-<li>通过 <code>c10::Dispatcher::singleton()</code> 获取 PyTorch 调度器实例。</li>
-<li>使用 <code>findSchemaOrThrow</code> 查找名为 <code>"pyg::softmax_csr"</code> 的操作，并确保找到。</li>
-<li><code>typed&lt;decltype(softmax_csr)&gt;()</code> 用于将操作类型显式声明为 <code>softmax_csr</code> 的签名。</li>
+<li>通过 <code>c10::Dispatcher::singleton()</code> 获取 PyTorch
+调度器实例。</li>
+<li>使用 <code>findSchemaOrThrow</code> 查找名为
+<code>"pyg::softmax_csr"</code> 的操作，并确保找到。</li>
+<li><code>typed&lt;decltype(softmax_csr)&gt;()</code>
+用于将操作类型显式声明为 <code>softmax_csr</code> 的签名。</li>
 </ul>
 <p><strong>调用操作：</strong></p>
 <ul>
@@ -452,101 +464,136 @@ mjx-container[display="true"] + br {
 </ul>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python">TORCH_LIBRARY_FRAGMENT(pyg, m) {<br>  m.<span class="hljs-keyword">def</span>(TORCH_SELECTIVE_SCHEMA(<br>      <span class="hljs-string">"pyg::softmax_csr(Tensor src, Tensor ptr, int dim=0) -&gt; Tensor"</span>));<br>  m.<span class="hljs-keyword">def</span>(TORCH_SELECTIVE_SCHEMA(<br>      <span class="hljs-string">"pyg::softmax_csr_backward(Tensor out, Tensor out_grad, "</span><br>      <span class="hljs-string">"Tensor ptr, int dim=0) -&gt; Tensor"</span>));<br>}<br></code></pre></td></tr></table></figure>
 <p>同样使用pytorch提供的宏进行接口绑定。</p>
-<h4 id="2-2-2-cpu-softmax-kernal-cpp">2.2.2 cpu/softmax_kernal.cpp</h4>
-<p>这一部分实现了一个 CSR（Compressed Sparse Row）格式下的 Softmax 操作，并进行了前向和反向计算的实现。通过并行化的方式，提高了计算效率。<code>softmax_csr_forward_kernel</code> 调用<code>softmax_csr_forward_kernel_impl</code> 来实现前向计算。</p>
-<p><code>softmax_csr_backward_kernel</code> 调用了 <code>softmax_csr_backward_kernel_impl</code> 来实现反向传播计算。</p>
+<h4 id="cpusoftmax_kernal.cpp">2.2.2 cpu/softmax_kernal.cpp</h4>
+<p>这一部分实现了一个 CSR（Compressed Sparse Row）格式下的 Softmax
+操作，并进行了前向和反向计算的实现。通过并行化的方式，提高了计算效率。<code>softmax_csr_forward_kernel</code>
+调用<code>softmax_csr_forward_kernel_impl</code> 来实现前向计算。</p>
+<p><code>softmax_csr_backward_kernel</code> 调用了
+<code>softmax_csr_backward_kernel_impl</code> 来实现反向传播计算。</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-built_in">TORCH_LIBRARY_IMPL</span>(pyg, CPU, m) {<br>  m.<span class="hljs-built_in">impl</span>(<span class="hljs-built_in">TORCH_SELECTIVE_NAME</span>(<span class="hljs-string">"pyg::softmax_csr"</span>),<br>         <span class="hljs-built_in">TORCH_FN</span>(softmax_csr_forward_kernel));<br>  m.<span class="hljs-built_in">impl</span>(<span class="hljs-built_in">TORCH_SELECTIVE_NAME</span>(<span class="hljs-string">"pyg::softmax_csr_backward"</span>),<br>         <span class="hljs-built_in">TORCH_FN</span>(softmax_csr_backward_kernel));<br>}<br></code></pre></td></tr></table></figure>
-<h4 id="2-2-3-autograd-softmax-kernal-cpp">2.2.3 autograd/softmax_kernal.cpp</h4>
-<p>这一部分通过继承 <code>torch::autograd::Function</code> 实现了一个自定义的 SoftmaxCSR 操作，支持自动求导功能。在前向传播中，执行了 CSR 格式的 softmax 计算，在反向传播中，计算了输入张量的梯度。通过 <code>TORCH_LIBRARY_IMPL</code> 宏将其注册到 PyTorch 的 Autograd 系统中，确保在进行反向传播时能够正确计算梯度。</p>
+<h4 id="autogradsoftmax_kernal.cpp">2.2.3
+autograd/softmax_kernal.cpp</h4>
+<p>这一部分通过继承 <code>torch::autograd::Function</code>
+实现了一个自定义的 SoftmaxCSR
+操作，支持自动求导功能。在前向传播中，执行了 CSR 格式的 softmax
+计算，在反向传播中，计算了输入张量的梯度。通过
+<code>TORCH_LIBRARY_IMPL</code> 宏将其注册到 PyTorch 的 Autograd
+系统中，确保在进行反向传播时能够正确计算梯度。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-built_in">TORCH_LIBRARY_IMPL</span>(pyg, Autograd, m) {<br>  m.<span class="hljs-built_in">impl</span>(<span class="hljs-built_in">TORCH_SELECTIVE_NAME</span>(<span class="hljs-string">"pyg::softmax_csr"</span>),<br>         <span class="hljs-built_in">TORCH_FN</span>(softmax_csr_autograd));<br>}<br></code></pre></td></tr></table></figure>
-<h3 id="2-3-matmul">2.3 matmul()</h3>
-<p>该方法分为两个,分别是<code>grouped_matmul</code> 和<code>segment_matmul</code> 。</p>
-<p><code>grouped_matmul</code> 操作的输入是两个矩阵列表（<code>inputs</code> 和 <code>others</code>），每个列表的元素数目相同，每个组中的矩阵进行对应的矩阵乘法。</p>
-<p><code>segment_matmul</code> 操作的输入是一个矩阵 <code>inputs</code>，一个表示段范围的向量 <code>ptr</code>，以及一个按段组织的 3D 矩阵 <code>other</code>，每个段对应一个矩阵乘法。</p>
+<h3 id="matmul">2.3 matmul()</h3>
+<p>该方法分为两个,分别是<code>grouped_matmul</code>
+和<code>segment_matmul</code> 。</p>
+<p><code>grouped_matmul</code>
+操作的输入是两个矩阵列表（<code>inputs</code> 和
+<code>others</code>），每个列表的元素数目相同，每个组中的矩阵进行对应的矩阵乘法。</p>
+<p><code>segment_matmul</code> 操作的输入是一个矩阵
+<code>inputs</code>，一个表示段范围的向量
+<code>ptr</code>，以及一个按段组织的 3D 矩阵
+<code>other</code>，每个段对应一个矩阵乘法。</p>
 <p>在python顶层，其调用分别为</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">outs = <span class="hljs-built_in">list</span>(GroupedMatmul.apply(<span class="hljs-built_in">tuple</span>(inputs + others)))<br>out = torch.ops.pyg.segment_matmul(inputs, ptr, other)<br></code></pre></td></tr></table></figure>
-<p>PyTorch 使用<strong>动态分派机制</strong>来根据当前的设备（CPU或CUDA）选择合适的实现。<code>inputs</code> 和 <code>other</code> 的 <code>.device</code> 属性决定操作所需的设备类型（CPU 或 CUDA）。</p>
-<h4 id="2-3-1-matmul-cpp">2.3.1 matmul.cpp</h4>
+<p>PyTorch
+使用<strong>动态分派机制</strong>来根据当前的设备（CPU或CUDA）选择合适的实现。<code>inputs</code>
+和 <code>other</code> 的 <code>.device</code>
+属性决定操作所需的设备类型（CPU 或 CUDA）。</p>
+<h4 id="matmul.cpp">2.3.1 matmul.cpp</h4>
 <p>接口绑定：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python">TORCH_LIBRARY_FRAGMENT(pyg, m) {<br>  m.<span class="hljs-keyword">def</span>(TORCH_SELECTIVE_SCHEMA(<br>      <span class="hljs-string">"pyg::grouped_matmul(Tensor[] input, Tensor[] other) -&gt; Tensor[]"</span>));<br>  m.<span class="hljs-keyword">def</span>(TORCH_SELECTIVE_SCHEMA(<br>      <span class="hljs-string">"pyg::segment_matmul(Tensor input, Tensor ptr, Tensor other) -&gt; Tensor"</span>));<br>}<br><br></code></pre></td></tr></table></figure>
-<h4 id="2-3-2-cpu-matmul-cpp以及autograd-matmul-cpp">2.3.2 cpu/matmul.cpp以及autograd/matmul.cpp</h4>
+<h4 id="cpumatmul.cpp以及autogradmatmul.cpp">2.3.2
+cpu/matmul.cpp以及autograd/matmul.cpp</h4>
 <p>实现绑定如下：</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-built_in">TORCH_LIBRARY_IMPL</span>(pyg, CPU, m) {<br>  m.<span class="hljs-built_in">impl</span>(<span class="hljs-built_in">TORCH_SELECTIVE_NAME</span>(<span class="hljs-string">"pyg::grouped_matmul"</span>),<br>         <span class="hljs-built_in">TORCH_FN</span>(grouped_matmul_kernel));<br>  m.<span class="hljs-built_in">impl</span>(<span class="hljs-built_in">TORCH_SELECTIVE_NAME</span>(<span class="hljs-string">"pyg::segment_matmul"</span>),<br>         <span class="hljs-built_in">TORCH_FN</span>(segment_matmul_kernel));<br>}<br></code></pre></td></tr></table></figure>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-built_in">TORCH_LIBRARY_IMPL</span>(pyg, Autograd, m) {<br>  m.<span class="hljs-built_in">impl</span>(<span class="hljs-built_in">TORCH_SELECTIVE_NAME</span>(<span class="hljs-string">"pyg::segment_matmul"</span>),<br>         <span class="hljs-built_in">TORCH_FN</span>(segment_matmul_autograd));<br>}<br></code></pre></td></tr></table></figure>
 <p>首先只有分段矩阵乘法需要自动求导，如果运算在cpu上进行则直接调用c++实现的接口。</p>
-<h4 id="2-3-3-cuda-matmul-cu">2.3.3 cuda/matmul.cu</h4>
+<h4 id="cudamatmul.cu">2.3.3 cuda/matmul.cu</h4>
 <p>实现绑定如下</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-built_in">TORCH_LIBRARY_IMPL</span>(pyg, CUDA, m) {<br>  m.<span class="hljs-built_in">impl</span>(<span class="hljs-built_in">TORCH_SELECTIVE_NAME</span>(<span class="hljs-string">"pyg::grouped_matmul"</span>),<br>         <span class="hljs-built_in">TORCH_FN</span>(grouped_matmul_kernel));<br>  m.<span class="hljs-built_in">impl</span>(<span class="hljs-built_in">TORCH_SELECTIVE_NAME</span>(<span class="hljs-string">"pyg::segment_matmul"</span>),<br>         <span class="hljs-built_in">TORCH_FN</span>(segment_matmul_kernel));<br>}<br></code></pre></td></tr></table></figure>
 <p>如果运算在gpu上进行则直接调用cuda实现的接口。</p>
-<h2 id="3-编译及打包">3. 编译及打包</h2>
-<h3 id="3-1-主要文件">3.1 主要文件</h3>
-<h4 id="setup-py"><code>setup.py</code></h4>
+<h2 id="编译及打包">3. 编译及打包</h2>
+<h3 id="主要文件">3.1 主要文件</h3>
+<h4 id="setup.py"><code>setup.py</code></h4>
 <ul>
 <li>提供了 Python 包的安装配置。</li>
 <li>定义了依赖项、构建选项以及如何通过 CMake 构建本地扩展模块。</li>
-<li>包含对 <strong>MKL</strong>（Math Kernel Library）、<strong>CUDA</strong> 和 <strong>Triton</strong> 等高性能计算工具的支持。</li>
+<li>包含对 <strong>MKL</strong>（Math Kernel
+Library）、<strong>CUDA</strong> 和 <strong>Triton</strong>
+等高性能计算工具的支持。</li>
 </ul>
-<h4 id="CMakeLists-txt"><code>CMakeLists.txt</code></h4>
+<h4 id="cmakelists.txt"><code>CMakeLists.txt</code></h4>
 <ul>
 <li>定义了 CMake 构建流程。</li>
 <li>支持多种可选功能，如测试、基准测试、CUDA 支持以及 Python 绑定。</li>
 <li>配置了外部依赖（如 parallel-hashmap 和 METIS）。</li>
 </ul>
-<h3 id="3-2-setup-py">3.2 <a target="_blank" rel="noopener" href="http://setup.py">setup.py</a>()</h3>
+<h3 id="setup.py-1">3.2 setup.py()</h3>
 <p><strong>依赖定义和版本信息</strong></p>
 <ul>
 <li><code>__version__</code> 定义了项目版本号（当前为 0.4.0）。</li>
-<li><code>install_requires</code> 动态添加了对 <code>MKL</code> 的依赖（如 <code>mkl-include</code> 和 <code>mkl-static</code>），前提是启用了 <code>USE_MKL_BLAS</code> 环境变量。</li>
+<li><code>install_requires</code> 动态添加了对 <code>MKL</code>
+的依赖（如 <code>mkl-include</code> 和
+<code>mkl-static</code>），前提是启用了 <code>USE_MKL_BLAS</code>
+环境变量。</li>
 <li>提供了额外依赖项，如：
 <ul>
 <li><code>triton_requires</code>：为 Triton 提供支持。</li>
 <li><code>test_requires</code>：测试相关依赖。</li>
-<li><code>dev_requires</code>：开发阶段使用的依赖（如 <code>pre-commit</code>）。</li>
-</ul>
-</li>
+<li><code>dev_requires</code>：开发阶段使用的依赖（如
+<code>pre-commit</code>）。</li>
+</ul></li>
 </ul>
 <p><strong>CMake 的集成</strong></p>
 <ul>
 <li><code>CMakeExtension</code>类：
 <ul>
-<li>用于定义需要使用 CMake 构建的扩展模块（此处为 <code>libpyg</code>）。</li>
-</ul>
-</li>
+<li>用于定义需要使用 CMake 构建的扩展模块（此处为
+<code>libpyg</code>）。</li>
+</ul></li>
 <li><code>CMakeBuild</code>类：
 <ul>
-<li>定制 <code>build_ext</code> 阶段，使用 CMake 生成构建系统并执行编译。</li>
+<li>定制 <code>build_ext</code> 阶段，使用 CMake
+生成构建系统并执行编译。</li>
 <li>自动检测并设置 CUDA、MKL、Ninja 等选项，控制构建行为。</li>
-<li>支持通过环境变量配置构建类型（<code>DEBUG</code>、<code>RELEASE</code> 等）。</li>
-</ul>
-</li>
+<li>支持通过环境变量配置构建类型（<code>DEBUG</code>、<code>RELEASE</code>
+等）。</li>
+</ul></li>
 </ul>
 <p><strong>环境变量支持</strong></p>
 <ul>
-<li><code>USE_MKL_BLAS=1</code>：启用 MKL 支持（需要 PyTorch 自身也支持 MKL）。</li>
-<li><code>FORCE_CUDA=1</code>：强制启用 CUDA 支持，无视自动检测结果。</li>
-<li><code>DEBUG</code> 或 <code>REL_WITH_DEB_INFO</code>：控制编译模式。</li>
+<li><code>USE_MKL_BLAS=1</code>：启用 MKL 支持（需要 PyTorch 自身也支持
+MKL）。</li>
+<li><code>FORCE_CUDA=1</code>：强制启用 CUDA
+支持，无视自动检测结果。</li>
+<li><code>DEBUG</code> 或
+<code>REL_WITH_DEB_INFO</code>：控制编译模式。</li>
 <li><code>FORCE_NINJA=1</code>：强制使用 Ninja 构建工具。</li>
 </ul>
 <p><strong>模块构建与安装</strong></p>
 <ul>
-<li>扩展模块 <code>libpyg</code> 使用 CMake 构建，最终结果以 Python 可加载的 <code>.so</code> 文件形式输出。</li>
+<li>扩展模块 <code>libpyg</code> 使用 CMake 构建，最终结果以 Python
+可加载的 <code>.so</code> 文件形式输出。</li>
 </ul>
 <p><strong>其他功能</strong></p>
 <ul>
 <li>提供警告信息，如缺少 Ninja 会影响构建速度。</li>
 <li>动态解析 PyTorch 的配置，确定 MKL 的版本和支持状态</li>
 </ul>
-<h3 id="3-3-CmakeLists-txt">3.3 CmakeLists.txt</h3>
-<h4 id="3-3-1-基础设置">3.3.1 基础设置</h4>
+<h3 id="cmakelists.txt-1">3.3 CmakeLists.txt</h3>
+<h4 id="基础设置">3.3.1 基础设置</h4>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">cmake_minimum_required</span>(VERSION <span class="hljs-number">3.15</span>)<br><span class="hljs-keyword">project</span>(pyg)<br><span class="hljs-keyword">set</span>(CMAKE_CXX_STANDARD <span class="hljs-number">17</span>)<br><span class="hljs-keyword">set</span>(CMAKE_CXX_STANDARD_REQUIRED <span class="hljs-keyword">ON</span>)<br><span class="hljs-keyword">set</span>(CMAKE_SHARED_LIBRARY_PREFIX <span class="hljs-string">"lib"</span>)<br><span class="hljs-keyword">set</span>(PYG_VERSION <span class="hljs-number">0.4</span>.<span class="hljs-number">0</span>)<br><br></code></pre></td></tr></table></figure>
-<p><strong><code>cmake_minimum_required</code></strong>: 指定支持的最低 CMake 版本为 3.15。</p>
-<p><strong><code>project</code></strong>: 定义工程名称为 <code>pyg</code>。</p>
-<p><strong><code>set(CMAKE_CXX_STANDARD 17)</code></strong>: 使用 C++17 标准。</p>
-<p><strong><code>set(CMAKE_SHARED_LIBRARY_PREFIX "lib")</code></strong>: 动态库文件前缀设置为 <code>lib</code>（如 <code>libpyg.so</code>）。</p>
-<p><strong><code>set(PYG_VERSION 0.4.0)</code></strong>: 定义项目的版本号。</p>
-<h4 id="3-3-2-构建选项">3.3.2 构建选项</h4>
+<p><strong><code>cmake_minimum_required</code></strong>: 指定支持的最低
+CMake 版本为 3.15。</p>
+<p><strong><code>project</code></strong>: 定义工程名称为
+<code>pyg</code>。</p>
+<p><strong><code>set(CMAKE_CXX_STANDARD 17)</code></strong>: 使用 C++17
+标准。</p>
+<p><strong><code>set(CMAKE_SHARED_LIBRARY_PREFIX "lib")</code></strong>:
+动态库文件前缀设置为 <code>lib</code>（如 <code>libpyg.so</code>）。</p>
+<p><strong><code>set(PYG_VERSION 0.4.0)</code></strong>:
+定义项目的版本号。</p>
+<h4 id="构建选项">3.3.2 构建选项</h4>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">option</span>(BUILD_TEST <span class="hljs-string">"Enable testing"</span> <span class="hljs-keyword">OFF</span>)<br><span class="hljs-keyword">option</span>(BUILD_BENCHMARK <span class="hljs-string">"Enable benchmarks"</span> <span class="hljs-keyword">OFF</span>)<br><span class="hljs-keyword">option</span>(WITH_COV <span class="hljs-string">"Enable code coverage"</span> <span class="hljs-keyword">OFF</span>)<br><span class="hljs-keyword">option</span>(USE_PYTHON <span class="hljs-string">"Link to Python when building"</span> <span class="hljs-keyword">OFF</span>)<br><span class="hljs-keyword">option</span>(WITH_CUDA <span class="hljs-string">"Enable CUDA support"</span> <span class="hljs-keyword">OFF</span>)<br><br></code></pre></td></tr></table></figure>
-<p><strong><code>option</code></strong>: 定义可选配置项，后面是选项说明和默认值。</p>
+<p><strong><code>option</code></strong>:
+定义可选配置项，后面是选项说明和默认值。</p>
 <ul>
 <li><code>BUILD_TEST</code>: 是否启用测试（默认关闭）。</li>
 <li><code>BUILD_BENCHMARK</code>: 是否启用性能基准测试。</li>
@@ -554,56 +601,68 @@ mjx-container[display="true"] + br {
 <li><code>USE_PYTHON</code>: 是否支持 Python 绑定。</li>
 <li><code>WITH_CUDA</code>: 是否启用 CUDA 支持。</li>
 </ul>
-<h4 id="3-3-3-ABI设置">3.3.3 ABI设置</h4>
+<h4 id="abi设置">3.3.3 ABI设置</h4>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-built_in">set</span>(CMAKE_CXX_FLAGS <span class="hljs-string">"${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0"</span>)<br><br></code></pre></td></tr></table></figure>
-<p>设置 <code>CXX11 ABI</code> 的兼容性选项，确保编译的二进制与依赖库（如 PyTorch）兼容。</p>
-<h4 id="3-3-4-MKL设置">3.3.4 MKL设置</h4>
+<p>设置 <code>CXX11 ABI</code>
+的兼容性选项，确保编译的二进制与依赖库（如 PyTorch）兼容。</p>
+<h4 id="mkl设置">3.3.4 MKL设置</h4>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">set</span>(WITH_MKL_BLAS <span class="hljs-number">0</span>)<br><span class="hljs-keyword">if</span>(USE_MKL_BLAS <span class="hljs-keyword">AND</span> <span class="hljs-keyword">DEFINED</span> BLAS_INCLUDE_DIR)<br>  <span class="hljs-keyword">find_file</span>(MKL_INCLUDE_FOUND mkl.h <span class="hljs-variable">${BLAS_INCLUDE_DIR}</span> NO_DEFAULT_PATH)<br>  <span class="hljs-keyword">if</span>(MKL_INCLUDE_FOUND)<br>    <span class="hljs-keyword">set</span>(WITH_MKL_BLAS <span class="hljs-number">1</span>)<br>  <span class="hljs-keyword">else</span>()<br>    <span class="hljs-keyword">if</span>(WITH_COV)<br>      <span class="hljs-keyword">message</span>(FATAL_ERROR <span class="hljs-string">"The mkl.h file was not found - pass the correct directory or set USE_MKL_BLAS=OFF."</span>)<br>    <span class="hljs-keyword">else</span>()<br>      <span class="hljs-keyword">message</span>(WARNING <span class="hljs-string">"The mkl.h file was not found - building pyg-lib without MKL BLAS support."</span>)<br>    <span class="hljs-keyword">endif</span>()<br>  <span class="hljs-keyword">endif</span>()<br><span class="hljs-keyword">endif</span>()<br><br></code></pre></td></tr></table></figure>
-<p><strong><code>USE_MKL_BLAS</code></strong> 和 <code>BLAS_INCLUDE_DIR</code>:</p>
+<p><strong><code>USE_MKL_BLAS</code></strong> 和
+<code>BLAS_INCLUDE_DIR</code>:</p>
 <ul>
 <li>如果启用 MKL 支持，检查是否能找到 <code>mkl.h</code> 头文件。</li>
-<li>找到后，启用 MKL 支持（<code>WITH_MKL_BLAS=1</code>）；否则发出警告或终止。</li>
+<li>找到后，启用 MKL
+支持（<code>WITH_MKL_BLAS=1</code>）；否则发出警告或终止。</li>
 </ul>
-<h4 id="3-3-5-生成配置文件">3.3.5 <strong>生成配置文件</strong></h4>
+<h4 id="生成配置文件">3.3.5 <strong>生成配置文件</strong></h4>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">configure_file</span>(<span class="hljs-variable">${CMAKE_CURRENT_SOURCE_DIR}</span>/pyg_lib/csrc/config.h.in <span class="hljs-string">"${CMAKE_CURRENT_SOURCE_DIR}/pyg_lib/csrc/config.h"</span>)<br><br></code></pre></td></tr></table></figure>
 <ul>
-<li>使用模板文件 <code>config.h.in</code> 生成 <code>config.h</code>，根据构建选项动态设置头文件内容。</li>
+<li>使用模板文件 <code>config.h.in</code> 生成
+<code>config.h</code>，根据构建选项动态设置头文件内容。</li>
 </ul>
-<h4 id="3-3-6-Python-支持">3.3.6 Python 支持</h4>
+<h4 id="python-支持">3.3.6 Python 支持</h4>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">if</span> (USE_PYTHON)<br>  <span class="hljs-keyword">cmake_policy</span>(<span class="hljs-keyword">SET</span> CMP0094 NEW)<br>  <span class="hljs-keyword">set</span>(Python3_FIND_REGISTRY <span class="hljs-string">"LAST"</span>)<br>  <span class="hljs-keyword">set</span>(Python3_FIND_FRAMEWORK <span class="hljs-string">"LAST"</span>)<br>  <span class="hljs-keyword">set</span>(Python3_FIND_VIRTUALENV <span class="hljs-string">"FIRST"</span>)<br><br>  <span class="hljs-keyword">add_definitions</span>(-DUSE_PYTHON)<br>  <span class="hljs-keyword">find_package</span>(Python3 REQUIRED COMPONENTS Development)<br><span class="hljs-keyword">endif</span>()<br><br></code></pre></td></tr></table></figure>
 <ul>
 <li><code>USE_PYTHON</code>
 <ul>
 <li>启用后，使用 <code>find_package</code> 查找 Python 开发工具链。</li>
 <li>定义了如何优先查找虚拟环境中的 Python 和 Python 框架。</li>
-<li>添加 <code>-DUSE_PYTHON</code> 宏，用于 C++ 源码中开启相关功能。</li>
+<li>添加 <code>-DUSE_PYTHON</code> 宏，用于 C++
+源码中开启相关功能。</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<h4 id="3-3-7-CUDA-支持">3.3.7 CUDA 支持</h4>
+<h4 id="cuda-支持">3.3.7 CUDA 支持</h4>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">if</span>(WITH_CUDA)<br>  <span class="hljs-keyword">enable_language</span>(CUDA)<br>  <span class="hljs-keyword">add_definitions</span>(-DWITH_CUDA)<br>  <span class="hljs-keyword">set</span>(CMAKE_CUDA_FLAGS <span class="hljs-string">"${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr"</span>)<br><br>  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">NOT</span> <span class="hljs-string">"$ENV{EXTERNAL_CUTLASS_INCLUDE_DIR}"</span> <span class="hljs-keyword">STREQUAL</span> <span class="hljs-string">""</span>)<br>    <span class="hljs-keyword">include_directories</span>($ENV{EXTERNAL_CUTLASS_INCLUDE_DIR})<br>  <span class="hljs-keyword">else</span>()<br>    <span class="hljs-keyword">set</span>(CUTLASS_DIR third_party/cutlass/<span class="hljs-keyword">include</span>)<br>    <span class="hljs-keyword">include_directories</span>(<span class="hljs-variable">${CUTLASS_DIR}</span>)<br>    <span class="hljs-keyword">set</span>(CUTLASS_UTIL_DIR third_party/cutlass/tools/util/<span class="hljs-keyword">include</span>)<br>    <span class="hljs-keyword">include_directories</span>(<span class="hljs-variable">${CUTLASS_UTIL_DIR}</span>)<br>  <span class="hljs-keyword">endif</span>()<br><span class="hljs-keyword">endif</span>()<br><br></code></pre></td></tr></table></figure>
-<p><strong><code>enable_language(CUDA)</code></strong>: 启用 CUDA 编译器。</p>
-<p><strong><code>add_definitions(-DWITH_CUDA)</code></strong>: 添加 CUDA 支持的预定义宏。</p>
-<p><strong><code>CUTLASS</code></strong>: 设置 CUTLASS 库路径，这是一个高效的矩阵计算库，CUDA 内核依赖它。</p>
-<h4 id="3-3-8-源码收集和目标构建">3.3.8 源码收集和目标构建</h4>
+<p><strong><code>enable_language(CUDA)</code></strong>: 启用 CUDA
+编译器。</p>
+<p><strong><code>add_definitions(-DWITH_CUDA)</code></strong>: 添加 CUDA
+支持的预定义宏。</p>
+<p><strong><code>CUTLASS</code></strong>: 设置 CUTLASS
+库路径，这是一个高效的矩阵计算库，CUDA 内核依赖它。</p>
+<h4 id="源码收集和目标构建">3.3.8 源码收集和目标构建</h4>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">set</span>(CSRC pyg_lib/csrc)<br><span class="hljs-keyword">file</span>(GLOB_RECURSE ALL_SOURCES <span class="hljs-variable">${CSRC}</span>/*.cpp)<br><span class="hljs-keyword">if</span> (WITH_CUDA)<br>  <span class="hljs-keyword">file</span>(GLOB_RECURSE ALL_SOURCES <span class="hljs-variable">${ALL_SOURCES}</span> <span class="hljs-variable">${CSRC}</span>/*.cu)<br><span class="hljs-keyword">endif</span>()<br><span class="hljs-keyword">file</span>(GLOB_RECURSE ALL_HEADERS <span class="hljs-variable">${CSRC}</span>/*.h)<br><span class="hljs-keyword">add_library</span>(<span class="hljs-variable">${PROJECT_NAME}</span> SHARED <span class="hljs-variable">${ALL_SOURCES}</span>)<br><span class="hljs-keyword">target_include_directories</span>(<span class="hljs-variable">${PROJECT_NAME}</span> PUBLIC <span class="hljs-string">"${CMAKE_CURRENT_SOURCE_DIR}"</span>)<br><span class="hljs-keyword">if</span>(MKL_INCLUDE_FOUND)<br>    <span class="hljs-keyword">target_include_directories</span>(<span class="hljs-variable">${PROJECT_NAME}</span> PRIVATE <span class="hljs-variable">${BLAS_INCLUDE_DIR}</span>)<br><span class="hljs-keyword">endif</span>()<br><br></code></pre></td></tr></table></figure>
-<p><strong><code>file(GLOB_RECURSE)</code></strong>: 递归收集源码文件，包括 <code>.cpp</code> 和 <code>.cu</code> 文件。</p>
-<p><strong><code>add_library</code></strong>: 创建动态库目标 <code>pyg</code>，并关联所有源码文件。</p>
+<p><strong><code>file(GLOB_RECURSE)</code></strong>:
+递归收集源码文件，包括 <code>.cpp</code> 和 <code>.cu</code> 文件。</p>
+<p><strong><code>add_library</code></strong>: 创建动态库目标
+<code>pyg</code>，并关联所有源码文件。</p>
 <p><strong><code>target_include_directories</code></strong>:</p>
 <ul>
 <li>添加当前目录为头文件路径。</li>
 <li>如果找到 MKL，添加其头文件路径。</li>
 </ul>
-<h4 id="3-3-9-外部依赖">3.3.9 外部依赖</h4>
+<h4 id="外部依赖">3.3.9 外部依赖</h4>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">if</span> (<span class="hljs-keyword">NOT</span> <span class="hljs-string">"$ENV{EXTERNAL_PHMAP_INCLUDE_DIR}"</span> <span class="hljs-keyword">STREQUAL</span> <span class="hljs-string">""</span>)<br>  <span class="hljs-keyword">include_directories</span>($ENV{EXTERNAL_PHMAP_INCLUDE_DIR})<br><span class="hljs-keyword">else</span>()<br>  <span class="hljs-keyword">set</span>(PHMAP_DIR third_party/parallel-hashmap)<br>  <span class="hljs-keyword">target_include_directories</span>(<span class="hljs-variable">${PROJECT_NAME}</span> PRIVATE <span class="hljs-variable">${PHMAP_DIR}</span>)<br><span class="hljs-keyword">endif</span>()<br><br></code></pre></td></tr></table></figure>
-<p><strong><code>parallel-hashmap</code></strong>: 检查 <code>parallel-hashmap</code> 的路径，优先使用环境变量提供的路径，否则使用 <code>third_party</code> 中的副本。</p>
-<h4 id="3-3-10-平台特定设置">3.3.10 平台特定设置</h4>
+<p><strong><code>parallel-hashmap</code></strong>: 检查
+<code>parallel-hashmap</code>
+的路径，优先使用环境变量提供的路径，否则使用 <code>third_party</code>
+中的副本。</p>
+<h4 id="平台特定设置">3.3.10 平台特定设置</h4>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">if</span> (MSVC)<br>  <span class="hljs-keyword">set</span>(CMAKE_C_FLAGS <span class="hljs-string">"${CMAKE_C_FLAGS} /DIDXTYPEWIDTH=64 /DREALTYPEWIDTH=32"</span>)<br>  <span class="hljs-keyword">set</span>(CMAKE_CXX_FLAGS <span class="hljs-string">"${CMAKE_CXX_FLAGS} /DIDXTYPEWIDTH=64 /DREALTYPEWIDTH=32"</span>)<br><span class="hljs-keyword">else</span>()<br>  <span class="hljs-keyword">set</span>(CMAKE_C_FLAGS <span class="hljs-string">"${CMAKE_C_FLAGS} -DIDXTYPEWIDTH=64 -DREALTYPEWIDTH=32"</span>)<br>  <span class="hljs-keyword">set</span>(CMAKE_CXX_FLAGS <span class="hljs-string">"${CMAKE_CXX_FLAGS} -DIDXTYPEWIDTH=64 -DREALTYPEWIDTH=32"</span>)<br><span class="hljs-keyword">endif</span>()<br><br></code></pre></td></tr></table></figure>
 <p>设置索引宽度和实数类型宽度，支持 64 位索引和 32 位浮点运算。</p>
-<h4 id="3-3-11-METIS-集成">3.3.11 METIS 集成</h4>
+<h4 id="metis-集成">3.3.11 METIS 集成</h4>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">if</span> (<span class="hljs-keyword">NOT</span> MSVC)<br>  <span class="hljs-keyword">set</span>(METIS_DIR third_party/METIS)<br>  <span class="hljs-keyword">target_include_directories</span>(<span class="hljs-variable">${PROJECT_NAME}</span> PRIVATE <span class="hljs-variable">${METIS_DIR}</span>/<span class="hljs-keyword">include</span>)<br>  <span class="hljs-keyword">set</span>(GKLIB_PATH <span class="hljs-string">"${METIS_DIR}/GKlib"</span>)<br>  <span class="hljs-keyword">include</span>(<span class="hljs-variable">${GKLIB_PATH}</span>/GKlibSystem.cmake)<br>  <span class="hljs-keyword">include_directories</span>(<span class="hljs-variable">${GKLIB_PATH}</span>)<br>  <span class="hljs-keyword">include_directories</span>(<span class="hljs-string">"${METIS_DIR}/include"</span>)<br>  <span class="hljs-keyword">add_subdirectory</span>(<span class="hljs-string">"${METIS_DIR}/libmetis"</span>)<br>  <span class="hljs-keyword">target_link_libraries</span>(<span class="hljs-variable">${PROJECT_NAME}</span> PRIVATE metis)<br><span class="hljs-keyword">endif</span>()<br></code></pre></td></tr></table></figure>
 <p>metis外部工具集成</p>
-<h4 id="3-3-12-PyTorch-和-OpenMP">3.3.12 PyTorch 和 OpenMP</h4>
+<h4 id="pytorch-和-openmp">3.3.12 PyTorch 和 OpenMP</h4>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs cmake"><span class="hljs-keyword">find_package</span>(Torch REQUIRED)<br><span class="hljs-keyword">message</span>(<span class="hljs-string">"-- TORCH_LIBRARIES: ${TORCH_LIBRARIES}"</span>)<br><span class="hljs-keyword">target_link_libraries</span>(<span class="hljs-variable">${PROJECT_NAME}</span> PRIVATE <span class="hljs-variable">${TORCH_LIBRARIES}</span>)<br><br><span class="hljs-keyword">find_package</span>(OpenMP)<br><span class="hljs-keyword">if</span>(OpenMP_CXX_FOUND)<br>  <span class="hljs-keyword">target_link_libraries</span>(<span class="hljs-variable">${PROJECT_NAME}</span> PRIVATE OpenMP::OpenMP_CXX)<br><span class="hljs-keyword">endif</span>()<br><br></code></pre></td></tr></table></figure>
 <p>查找并链接 PyTorch 和 OpenMP 库。</p>
 
