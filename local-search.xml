@@ -4,6 +4,25 @@
   
   
   <entry>
+    <title>MCP Server、Function Call与Agent的核心区别</title>
+    <link href="/2025/08/03/MCP%20Server%E3%80%81Function%20Call%E4%B8%8EAgent%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB/"/>
+    <url>/2025/08/03/MCP%20Server%E3%80%81Function%20Call%E4%B8%8EAgent%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB/</url>
+    
+    <content type="html"><![CDATA[<h2 id="mcp-server">MCP Server</h2><p>MCP Server是大语言模型（LLM）获取外部能力和数据的一套标准化服务。它完全受控于调用方，只负责执行指令，不具备主动决策或推理能力。其功能涵盖多种工具，例如Fetch MCP Server 用于网络抓取，而 Google Drive MCP Server则可用于文件访问。简而言之，它是一个被动的执行者，而非主动的决策者。</p><pre><code class=" mermaid">sequenceDiagram    participant User    participant MCP-Client    participant LLM    participant MCP-Server    User-&gt;&gt;+MCP-Client: 发送请求    MCP-Client-&gt;&gt;+LLM: 传递用户查询及工具描述    LLM--&gt;&gt;-MCP-Client: 返回需调用的工具指令    MCP-Client-&gt;&gt;+MCP-Server: 执行工具调用 (HTTP/SSE或stdio)     MCP-Server--&gt;&gt;-MCP-Client: 返回执行结果    MCP-Client-&gt;&gt;+LLM: 传递工具执行结果[2]    LLM--&gt;&gt;-MCP-Client: 生成自然语言响应    MCP-Client--&gt;&gt;-User: 返回最终响应</code></pre><p>例如我们基于 spring-ai 定义一个自动发布mcp-server，打成 jar包，其通过 stdio 方式与 LLM 进行交互。</p><h2 id="function-call">Function Call</h2><p>Function Call是一种强大的机制，它赋予了大型语言模型（LLM）直接调用外部函数的能力，这就像为模型配备了一把“瑞士军刀”。它的核心思想是让模型能够理解并生成调用特定函数所需的参数，并将函数执行的结果融入自身的响应中。</p><pre><code class=" mermaid">sequenceDiagram    participant 用户    participant 大模型    participant 外部函数用户-&gt;&gt;大模型: 提问&quot;北京今日气温？&quot;activate 大模型大模型-&gt;&gt;大模型: 解析意图生成参数大模型-&gt;&gt;大模型: 生成&#123;&quot;location&quot;: &quot;北京&quot;&#125;大模型-&gt;&gt;外部函数: 调用get_weather(参数)activate 外部函数外部函数--&gt;&gt;大模型: 返回JSON数据deactivate 外部函数大模型-&gt;&gt;大模型: 数据格式转换大模型--&gt;&gt;用户: 整合回复&quot;北京今日18摄氏度, 湿度60%&quot;deactivate 大模型</code></pre><p>Function Call的最大特点在于，它是一种“代码级”的扩展，其紧密集成于模型本身的训练和部署流程中。它不是一个独立的外部服务，而是模型能力的一部分，因此得名“瑞士军刀”，因为它以一种灵活、集成的方式，极大地扩展了模型的应用范围和实用性。</p><h2 id="agent">Agent</h2><p>Agent 是一种具备高度自主性的 AI实体。它能够独立理解复杂的目标，并将其分解为一系列可执行的子任务。为了完成这些任务，Agent能够智能地调用各种外部工具，例如利用 MCP Server 访问外部数据源，或通过Function Call 执行特定代码。这种强大的自主规划和工具调用能力，使得 Agent能够处理诸如“撰写AI趋势报告”这类需要多步操作和跨工具协作的复杂任务。</p><p>以下为基于Agent 完成总结知乎关于 AI 最新讨论任务的例子：</p><pre><code class=" mermaid">sequenceDiagram    participant User    participant LLM    participant Function    participant MCP_ServerUser-&gt;&gt;LLM: 帮我总结知乎上关于AI的最新讨论activate LLMLLM-&gt;&gt;Function: 调用 `detect_platform(url)`activate FunctionFunction--&gt;&gt;LLM: 返回 &quot;知乎&quot;deactivate FunctionLLM-&gt;&gt;MCP_Server: 通过 MCP 协议请求爬虫服务activate MCP_ServerMCP_Server--&gt;&gt;LLM: 返回结构化网页数据deactivate MCP_ServerLLM--&gt;&gt;User: 生成摘要报告deactivate LLM</code></pre>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>大模型应用开发</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>test.md</title>
     <link href="/2025/08/02/test-md/"/>
     <url>/2025/08/02/test-md/</url>
