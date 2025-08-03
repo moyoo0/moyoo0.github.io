@@ -19,22 +19,22 @@
   <meta name="author" content="moyoo">
   <meta name="keywords" content="">
   
-    <meta name="description" content="MCP Server MCP Server 是大语言模型（LLM）获取外部能力和数据的一套标准化服务。它完全受控于调用方，只负责执行指令，不具备主动决策或推理能力。其功能涵盖多种工具，例如 Fetch MCP Server 用于网络抓取，而 Google Drive MCP Server 则可用于文件访问。简而言之，它是一个被动的执行者，而非主动的决策者。 sequenceDiagram">
+    <meta name="description" content="此文档仅供个人整理学习使用  功能概述 基于 Spring-ai 框架实现如下功能：以 openai 作为 LLM，自定义负责自动发贴的 MCP-server，以 stdio 方式与 LLM 进行交互。 sequenceDiagram     participant TriggerJob as 定时任务     participant ChatClient as ChatClient     p">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MCP Server、Function Call与Agent的核心区别">
-<meta property="og:url" content="http://moyoo0.github.io/2025/08/03/MCP%20Server%E3%80%81Function%20Call%E4%B8%8EAgent%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB/index.html">
+<meta property="og:title" content="基于spring-ai实现MCP-Server&#x2F;Client">
+<meta property="og:url" content="http://moyoo0.github.io/2025/08/04/%E5%9F%BA%E4%BA%8Espring-ai%E5%AE%9E%E7%8E%B0MCP-Server:Client/index.html">
 <meta property="og:site_name" content="moyoo">
-<meta property="og:description" content="MCP Server MCP Server 是大语言模型（LLM）获取外部能力和数据的一套标准化服务。它完全受控于调用方，只负责执行指令，不具备主动决策或推理能力。其功能涵盖多种工具，例如 Fetch MCP Server 用于网络抓取，而 Google Drive MCP Server 则可用于文件访问。简而言之，它是一个被动的执行者，而非主动的决策者。 sequenceDiagram">
+<meta property="og:description" content="此文档仅供个人整理学习使用  功能概述 基于 Spring-ai 框架实现如下功能：以 openai 作为 LLM，自定义负责自动发贴的 MCP-server，以 stdio 方式与 LLM 进行交互。 sequenceDiagram     participant TriggerJob as 定时任务     participant ChatClient as ChatClient     p">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2025-08-03T15:03:33.000Z">
-<meta property="article:modified_time" content="2025-08-03T16:48:47.348Z">
+<meta property="article:published_time" content="2025-08-03T17:00:18.000Z">
+<meta property="article:modified_time" content="2025-08-03T17:45:27.526Z">
 <meta property="article:author" content="moyoo">
 <meta property="article:tag" content="大模型应用开发">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>MCP Server、Function Call与Agent的核心区别 - moyoo</title>
+  <title>基于spring-ai实现MCP-Server/Client - moyoo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -213,7 +213,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="MCP Server、Function Call与Agent的核心区别"></span>
+            <span id="subtitle" data-typed-text="基于spring-ai实现MCP-Server/Client"></span>
           
         </div>
 
@@ -224,8 +224,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2025-08-03 23:03" pubdate>
-          August 3, 2025 pm
+        <time datetime="2025-08-04 01:00" pubdate>
+          August 4, 2025 am
         </time>
       </span>
     
@@ -236,7 +236,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          810 words
+          936 words
         
       </span>
     
@@ -247,7 +247,7 @@
         
         
         
-          7 mins
+          8 mins
         
       </span>
     
@@ -293,84 +293,94 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">MCP Server、Function Call与Agent的核心区别</h1>
+            <h1 id="seo-header">基于spring-ai实现MCP-Server/Client</h1>
             
             
               <div class="markdown-body">
                 
-                <h2 id="mcp-server">MCP Server</h2>
-<p>MCP Server
-是大语言模型（LLM）获取外部能力和数据的一套标准化服务。它完全受控于调用方，只负责执行指令，不具备主动决策或推理能力。其功能涵盖多种工具，例如
-Fetch MCP Server 用于网络抓取，而 Google Drive MCP Server
-则可用于文件访问。简而言之，它是一个被动的执行者，而非主动的决策者。</p>
+                <blockquote>
+<p>此文档仅供个人整理学习使用</p>
+</blockquote>
+<h2 id="功能概述">功能概述</h2>
+<p>基于 Spring-ai 框架实现如下功能：以 openai 作为
+LLM，自定义负责自动发贴的 MCP-server，以 stdio 方式与 LLM 进行交互。</p>
 <pre><code class="hljs mermaid">sequenceDiagram
-    participant User
-    participant MCP-Client
-    participant LLM
-    participant MCP-Server
-    
-User-&gt;&gt;MCP-Client: 发送请求
-activate MCP-Client
-MCP-Client-&gt;&gt;LLM: 传递用户查询及工具描述
-activate LLM
-LLM--&gt;&gt;MCP-Client: 返回需调用的工具指令
-deactivate LLM
-MCP-Client-&gt;&gt;MCP-Server: 执行工具调用 (HTTP/SSE或stdio)
-activate MCP-Server
-MCP-Server--&gt;&gt;MCP-Client: 返回执行结果 
-deactivate MCP-Server
-MCP-Client--&gt;LLM: 传递工具执行结果
-activate LLM
-LLM--&gt;&gt;MCP-Client: 生成自然语言响应
-deactivate LLM
-MCP-Client--&gt;&gt;User: 返回最终响应
-deactivate MCP-Client</code></pre>
-<p>例如我们基于 spring-ai 定义一个自动发布mcp-server，打成 jar
-包，其通过 stdio 方式与 LLM 进行交互。</p>
-<h2 id="function-call">Function Call</h2>
-<p>Function Call
-是一种强大的机制，它赋予了大型语言模型（LLM）直接调用外部函数的能力，这就像为模型配备了一把“瑞士军刀”。它的核心思想是让模型能够理解并生成调用特定函数所需的参数，并将函数执行的结果融入自身的响应中。</p>
-<pre><code class="hljs mermaid">sequenceDiagram
-    participant 用户
-    participant 大模型
-    participant 外部函数
-用户-&gt;&gt;大模型: 提问&quot;北京今日气温？&quot;
-activate 大模型
-大模型-&gt;&gt;大模型: 解析意图生成参数
-大模型-&gt;&gt;大模型: 生成&#123;&quot;location&quot;: &quot;北京&quot;&#125;
-大模型-&gt;&gt;外部函数: 调用get_weather(参数)
-activate 外部函数
-外部函数--&gt;&gt;大模型: 返回JSON数据
-deactivate 外部函数
-大模型-&gt;&gt;大模型: 数据格式转换
-大模型--&gt;&gt;用户: 整合回复&quot;北京今日18摄氏度, 湿度60%&quot;
-deactivate 大模型</code></pre>
-<p>Function Call
-的最大特点在于，它是一种“代码级”的扩展，其紧密集成于模型本身的训练和部署流程中。它不是一个独立的外部服务，而是模型能力的一部分，因此得名“瑞士军刀”，因为它以一种灵活、集成的方式，极大地扩展了模型的应用范围和实用性。</p>
-<h2 id="agent">Agent</h2>
-<p>Agent 是一种具备高度自主性的 AI
-实体。它能够独立理解复杂的目标，并将其分解为一系列可执行的子任务。为了完成这些任务，Agent
-能够智能地调用各种外部工具，例如利用 MCP Server 访问外部数据源，或通过
-Function Call 执行特定代码。这种强大的自主规划和工具调用能力，使得 Agent
-能够处理诸如“撰写AI趋势报告”这类需要多步操作和跨工具协作的复杂任务。</p>
-<p>以下为基于Agent 完成总结知乎关于 AI 最新讨论任务的例子：</p>
-<pre><code class="hljs mermaid">sequenceDiagram
-    participant User
-    participant LLM
-    participant Function
-    participant MCP_Server
-User-&gt;&gt;LLM: 帮我总结知乎上关于AI的最新讨论
-activate LLM
-LLM-&gt;&gt;Function: 调用 `detect_platform(url)`
-activate Function
-Function--&gt;&gt;LLM: 返回 &quot;知乎&quot;
-deactivate Function
-LLM-&gt;&gt;MCP_Server: 通过 MCP 协议请求爬虫服务
-activate MCP_Server
-MCP_Server--&gt;&gt;LLM: 返回结构化网页数据
-deactivate MCP_Server
-LLM--&gt;&gt;User: 生成摘要报告
-deactivate LLM</code></pre>
+    participant TriggerJob as 定时任务
+    participant ChatClient as ChatClient
+    participant MCPClient as MCP Client
+    participant MCPServer as MCP Server (mcpjar)
+    TriggerJob-&gt;&gt;ChatClient: prompt(userInput).call()
+    ChatClient-&gt;&gt;MCPClient: 发现/调用 MCP 工具
+    MCPClient-&gt;&gt;MCPServer: 通过 STDIO 发送 JSON-RPC 请求
+    MCPServer--&gt;&gt;MCPClient: STDIO 返回 JSON-RPC 响应
+    MCPClient--&gt;&gt;ChatClient: 返回工具调用结果
+    ChatClient--&gt;&gt;TriggerJob: 返回最终内容</code></pre>
+<h2 id="mcp-client端实现">MCP Client端实现</h2>
+<h3 id="引入pom">1. 引入pom</h3>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><br><span class="hljs-string">&lt;dependency&gt;</span><br>    <span class="hljs-string">&lt;groupId&gt;org.springframework.ai&lt;/groupId&gt;</span><br>    <span class="hljs-string">&lt;artifactId&gt;spring-ai-mcp-client-webflux-spring-boot-starter&lt;/artifactId&gt;</span><br><span class="hljs-string">&lt;/dependency&gt;</span><br><br></code></pre></td></tr></table></figure>
+<ul>
+<li><p>这是 MCP Client（模型上下文协议客户端）的 Spring Boot
+启动器，基于 WebFlux（响应式 SSE）实现。</p></li>
+<li><p>让你的 Spring Boot 应用可以作为 MCP Client，通过 HTTP SSE
+协议/stdio 协议与 MCP Server
+通信，实现工具发现、Prompt调用、资源访问等。</p></li>
+<li><p>自动配置 MCP Client
+的所有组件，包括连接管理、协议处理、工具回调集成、SSE传输等。</p></li>
+<li><p>支持响应式编程模型，适合高并发、异步场景。</p></li>
+</ul>
+<h3 id="配置mcp">2. 配置MCP</h3>
+<h4 id="配置json">2.1 配置json</h4>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">ai:</span><br>  <span class="hljs-attr">mcp:</span><br>    <span class="hljs-attr">client:</span><br>      <span class="hljs-attr">request-timeout:</span> <span class="hljs-string">360s</span><br>      <span class="hljs-attr">stdio:</span><br>        <span class="hljs-attr">servers-configuration:</span> <span class="hljs-string">classpath:/config/mcp-servers-config.json</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs yaml">&#123;<br>  <span class="hljs-attr">&quot;mcpServers&quot;:</span> &#123;<br>    <span class="hljs-attr">&quot;mcp-server-csdn&quot;:</span> &#123;<br>      <span class="hljs-attr">&quot;command&quot;:</span> <span class="hljs-string">&quot;java&quot;</span>,<br>      <span class="hljs-attr">&quot;args&quot;:</span> [<br>        <span class="hljs-string">&quot;-Dspring.ai.mcp.server.stdio=true&quot;</span>,<br>        <span class="hljs-string">&quot;-jar&quot;</span>,<br>        <span class="hljs-string">mcp-server的</span> <span class="hljs-string">jar</span> <span class="hljs-string">包路径</span>,<br>        <span class="hljs-string">全局变量：例如</span> <span class="hljs-string">cookie</span> <span class="hljs-string">等，由</span> <span class="hljs-string">tool</span> <span class="hljs-string">定义</span><br>      ]<br>    &#125;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="构造客户端">3. 构造客户端</h3>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs java"> <span class="hljs-meta">@Bean(&quot;syncMcpToolCallbackProvider&quot;)</span><br><span class="hljs-comment">//mcpClients 是一个Spring自动注入的 List&lt;McpSyncClient&gt;。</span><br>    <span class="hljs-keyword">public</span> SyncMcpToolCallbackProvider <span class="hljs-title function_">syncMcpToolCallbackProvider</span><span class="hljs-params">(List&lt;McpSyncClient&gt; mcpClients)</span> &#123;<br><span class="hljs-comment">//        mcpClients.remove(0);</span><br><br>        <span class="hljs-comment">// 用于记录 name 和其对应的 index</span><br>        Map&lt;String, Integer&gt; nameToIndexMap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>        <span class="hljs-comment">// 用于记录重复的 index</span><br>        Set&lt;Integer&gt; duplicateIndices = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashSet</span>&lt;&gt;();<br><br>        <span class="hljs-comment">// 遍历 mcpClients 列表</span><br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; mcpClients.size(); i++) &#123;<br>            <span class="hljs-type">String</span> <span class="hljs-variable">name</span> <span class="hljs-operator">=</span> mcpClients.get(i).getServerInfo().name();<br>            <span class="hljs-keyword">if</span> (nameToIndexMap.containsKey(name)) &#123;<br>                <span class="hljs-comment">// 如果 name 已经存在，记录当前 index 为重复</span><br>                duplicateIndices.add(i);<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                <span class="hljs-comment">// 否则，记录 name 和 index</span><br>                nameToIndexMap.put(name, i);<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-comment">// 删除重复的元素，从后往前删除以避免影响索引</span><br>        List&lt;Integer&gt; sortedIndices = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(duplicateIndices);<br>        sortedIndices.sort(Collections.reverseOrder());<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> index : sortedIndices) &#123;<br>            mcpClients.remove(index);<br>        &#125;<br><br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SyncMcpToolCallbackProvider</span>(mcpClients);<br>    &#125;<br>  <br><span class="hljs-meta">@Bean</span><br>  <span class="hljs-keyword">public</span> ChatClient <span class="hljs-title function_">chatClient</span><span class="hljs-params">(OpenAiChatModel openAiChatModel, <span class="hljs-meta">@Qualifier(&quot;syncMcpToolCallbackProvider&quot;)</span> ToolCallbackProvider syncMcpToolCallbackProvider, ChatMemory chatMemory)</span> &#123;<br>      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DefaultChatClientBuilder</span>(openAiChatModel, ...)<br>          .defaultTools(syncMcpToolCallbackProvider)<br>          .defaultAdvisors(<span class="hljs-keyword">new</span> <span class="hljs-title class_">PromptChatMemoryAdvisor</span>(chatMemory))<br>          .build();<br>  &#125;<br></code></pre></td></tr></table></figure>
+<p><code>OpenAiChatModel openAiChatModel</code></p>
+<ul>
+<li><p>这是 Spring AI 的“聊天模型”对象，封装了与 OpenAI（或兼容 API，如
+Azure OpenAI）通信的底层逻辑。</p></li>
+<li><p>你可以通过它直接调用 LLM（如 GPT-4、GPT-3.5）。</p></li>
+<li><p>在本项目中，ChatClient 既可以用 openai，也可以通过 MCP
+工具调用外部 AI 服务。</p></li>
+</ul>
+<p><code>ToolCallbackProvider syncMcpToolCallbackProvider</code></p>
+<ul>
+<li><p>这是 MCP 客户端的关键参数，类型为 ToolCallbackProvider，实际由
+SyncMcpToolCallbackProvider 实现。</p></li>
+<li><p>它内部持有一组 McpSyncClient，每个 client 代表一个 MCP Server
+的连接（如 mcp-server-csdn、mcp-server-weixin）。</p></li>
+<li><p>作用：将 MCP Server 暴露的“工具”注册到 ChatClient 体系中，这样
+prompt 里就可以通过工具调用远程 MCP Server 的 AI 能力。</p></li>
+<li><p>其构造依赖于配置文件（如 mcp-servers-config-4.json），自动管理
+MCP Server 的进程和连接。</p></li>
+</ul>
+<p><code>ChatMemory chatMemory</code></p>
+<ul>
+<li><p>对话记忆对象，类型为 ChatMemory，本例用的是
+InMemoryChatMemory。</p></li>
+<li><p>作用：为 ChatClient
+提供会话记忆能力，支持上下文多轮对话、历史消息追踪等。</p></li>
+<li><p>通过 PromptChatMemoryAdvisor 集成到 ChatClient，自动管理 prompt
+的上下文。</p></li>
+</ul>
+<h3 id="调用">4. 调用</h3>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">chatClient.prompt(userInput).call().content();<br></code></pre></td></tr></table></figure>
+<ul>
+<li>这里的 chatClient 是 Spring 注入的 ChatClient，其底层集成了 MCP
+协议的能力。</li>
+</ul>
+<h2 id="mcp-server端实现">MCP Server端实现</h2>
+<h3 id="引入pom-1">1. 引入pom</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs pom">&lt;dependency&gt;<br>    &lt;groupId&gt;org.springframework.ai&lt;/groupId&gt;<br>    &lt;artifactId&gt;spring-ai-mcp-server-spring-boot-starter&lt;/artifactId&gt;<br>&lt;/dependency&gt;<br></code></pre></td></tr></table></figure>
+<h3 id="tool声明">2. Tool声明</h3>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CSDNArticleService</span> &#123;<br><br>    <span class="hljs-meta">@Resource</span><br>    <span class="hljs-keyword">private</span> ICSDNPort port;<br><br>    <span class="hljs-meta">@Tool(description = &quot;发布文章&quot;)</span><br>    <span class="hljs-keyword">public</span> ArticleFunctionResponse <span class="hljs-title function_">saveArticle</span><span class="hljs-params">(ArticleFunctionRequest request)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        log.info(<span class="hljs-string">&quot;标题:&#123;&#125; 内容:&#123;&#125; 标签:&#123;&#125;&quot;</span>, request.getTitle(), request.getMarkdowncontent(), request.getTags());<br>        <span class="hljs-keyword">return</span> port.writeArticle(request);<br>    &#125;<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>暴露给 client</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Bean</span><br>   <span class="hljs-keyword">public</span> ToolCallbackProvider <span class="hljs-title function_">csdnTools</span><span class="hljs-params">(CSDNArticleService csdnArticleService)</span> &#123;<br>       <span class="hljs-keyword">return</span> MethodToolCallbackProvider.builder().toolObjects(csdnArticleService).build();<br>   &#125;<br></code></pre></td></tr></table></figure>
+<p>这表明服务端通过 Spring AI 工具链（如 ToolCallbackProvider）将
+CSDNArticleService 的方法暴露为“工具”接口，供外部 client 端调用。</p>
+<h3 id="mcp-server具体发帖功能实现略">3.
+MCP-Server具体发帖功能实现(略)</h3>
+<h3 id="打包成jar并在client端配置好jar包路径">4.
+打包成jar并在client端配置好jar包路径</h3>
 
                 
               </div>
@@ -378,6 +388,27 @@ deactivate LLM</code></pre>
             <hr/>
             <div>
               <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91/" class="category-chain-item">大模型应用开发</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
   
   
     <div class="post-meta">
@@ -395,8 +426,8 @@ deactivate LLM</code></pre>
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>MCP Server、Function Call与Agent的核心区别</div>
-      <div>http://moyoo0.github.io/2025/08/03/MCP Server、Function Call与Agent的核心区别/</div>
+      <div>基于spring-ai实现MCP-Server/Client</div>
+      <div>http://moyoo0.github.io/2025/08/04/基于spring-ai实现MCP-Server:Client/</div>
     </div>
     <div class="license-meta">
       
@@ -408,7 +439,7 @@ deactivate LLM</code></pre>
       
         <div class="license-meta-item license-meta-date">
           <div>Posted on</div>
-          <div>August 3, 2025</div>
+          <div>August 4, 2025</div>
         </div>
       
       
@@ -440,18 +471,12 @@ deactivate LLM</code></pre>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2025/08/04/%E5%9F%BA%E4%BA%8Espring-ai%E5%AE%9E%E7%8E%B0MCP-Server:Client/" title="基于spring-ai实现MCP-Server/Client">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">基于spring-ai实现MCP-Server/Client</span>
-                        <span class="visible-mobile">Previous</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2025/08/02/test-md/" title="test.md">
-                        <span class="hidden-mobile">test.md</span>
+                      <a href="/2025/08/03/MCP%20Server%E3%80%81Function%20Call%E4%B8%8EAgent%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8C%BA%E5%88%AB/" title="MCP Server、Function Call与Agent的核心区别">
+                        <span class="hidden-mobile">MCP Server、Function Call与Agent的核心区别</span>
                         <span class="visible-mobile">Next</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
