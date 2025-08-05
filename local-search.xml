@@ -4,6 +4,25 @@
   
   
   <entry>
+    <title>字符串与字符数组常用 api</title>
+    <link href="/2025/08/05/%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B8%8E%E5%AD%97%E7%AC%A6%E6%95%B0%E7%BB%84%E5%B8%B8%E7%94%A8-api/"/>
+    <url>/2025/08/05/%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B8%8E%E5%AD%97%E7%AC%A6%E6%95%B0%E7%BB%84%E5%B8%B8%E7%94%A8-api/</url>
+    
+    <content type="html"><![CDATA[<h2 id="数组排序">数组排序</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Arrays.sort(array) <span class="hljs-comment">//为 void 类型</span><br></code></pre></td></tr></table></figure><h2 id="字符串与字符数组的转换">字符串与字符数组的转换</h2><p>在 <code>String</code> 和 <code>char[]</code>之间进行转换非常常见。</p><hr><p><strong>字符串转字符数组</strong></p><ul><li><p><code>String.toCharArray()</code>:这是最常用的方法，返回一个包含所有字符的新数组。</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-type">String</span> <span class="hljs-variable">str</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Java&quot;</span>;<br><span class="hljs-type">char</span>[] charArr = str.toCharArray(); <span class="hljs-comment">// charArr 为 &#123;&#x27;J&#x27;, &#x27;a&#x27;, &#x27;v&#x27;, &#x27;a&#x27;&#125;</span><br></code></pre></td></tr></table></figure></li></ul><hr><p><strong>字符数组转字符串</strong></p><ul><li><p><code>new String(char[] value)</code>: 使用 <code>String</code>类的构造函数。</p><p>Java</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-type">char</span>[] charArr = &#123;<span class="hljs-string">&#x27;j&#x27;</span>, <span class="hljs-string">&#x27;a&#x27;</span>, <span class="hljs-string">&#x27;v&#x27;</span>, <span class="hljs-string">&#x27;a&#x27;</span>&#125;;<br><span class="hljs-type">String</span> <span class="hljs-variable">str</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(charArr); <span class="hljs-comment">// str 为 &quot;java&quot;</span><br></code></pre></td></tr></table></figure></li><li><p><code>String.valueOf(char[] data)</code>: 使用<code>String</code> 的静态方法。</p><p>Java</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-type">String</span> <span class="hljs-variable">str2</span> <span class="hljs-operator">=</span> String.valueOf(charArr); <span class="hljs-comment">// str2 为 &quot;java&quot;</span><br></code></pre></td></tr></table></figure></li></ul>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Java</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>HashMap 杂记</title>
     <link href="/2025/08/05/HashMap-%E6%9D%82%E8%AE%B0/"/>
     <url>/2025/08/05/HashMap-%E6%9D%82%E8%AE%B0/</url>
