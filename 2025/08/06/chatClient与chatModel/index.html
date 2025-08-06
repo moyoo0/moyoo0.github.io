@@ -1,0 +1,856 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="moyoo">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="ChatModelChatModel：核心原子能力ChatModel 是与底层 AI 大模型进行交互的 核心原子 API。  职责：它的主要职责是接收一系列消息（ChatMessage）作为输入，然后直接与具体的 LLM 服务（如通义千问、GPT-4 等）进行通信，并返回原始的 ChatResponse。 功能：它提供最基础、最原始的文本交互能力，不包含任何额外的增强功能或复杂逻辑。 类比：你可以">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ChatClient与ChatModel">
+<meta property="og:url" content="http://moyoo0.github.io/2025/08/06/chatClient%E4%B8%8EchatModel/index.html">
+<meta property="og:site_name" content="moyoo">
+<meta property="og:description" content="ChatModelChatModel：核心原子能力ChatModel 是与底层 AI 大模型进行交互的 核心原子 API。  职责：它的主要职责是接收一系列消息（ChatMessage）作为输入，然后直接与具体的 LLM 服务（如通义千问、GPT-4 等）进行通信，并返回原始的 ChatResponse。 功能：它提供最基础、最原始的文本交互能力，不包含任何额外的增强功能或复杂逻辑。 类比：你可以">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://moyoo0.github.io/2025/08/06/chatClient%E4%B8%8EchatModel/ChatModel.png">
+<meta property="article:published_time" content="2025-08-06T14:55:30.000Z">
+<meta property="article:modified_time" content="2025-08-06T16:07:24.512Z">
+<meta property="article:author" content="moyoo">
+<meta property="article:tag" content="SpringAi">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://moyoo0.github.io/2025/08/06/chatClient%E4%B8%8EchatModel/ChatModel.png">
+  
+  
+  
+  <title>ChatClient与ChatModel - moyoo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"moyoo0.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"FyJriWj3B2ezdRzT1ycTlHTK-gzGzoHsz","app_key":"qxYsNPBUjdgt7F2Io9tPsZvr","server_url":"https://fyjriwj3.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>moyoo</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="ChatClient与ChatModel"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-06 22:55" pubdate>
+          August 6, 2025 pm
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          17 mins
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> views
+        </span>
+        
+      
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">ChatClient与ChatModel</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="ChatModel"><a href="#ChatModel" class="headerlink" title="ChatModel"></a>ChatModel</h2><h3 id="ChatModel：核心原子能力"><a href="#ChatModel：核心原子能力" class="headerlink" title="ChatModel：核心原子能力"></a>ChatModel：核心原子能力</h3><p><code>ChatModel</code> 是与底层 AI 大模型进行交互的 <strong>核心原子 API</strong>。</p>
+<ul>
+<li><strong>职责</strong>：它的主要职责是接收一系列消息（<code>ChatMessage</code>）作为输入，然后直接与具体的 LLM 服务（如通义千问、GPT-4 等）进行通信，并返回原始的 <code>ChatResponse</code>。</li>
+<li><strong>功能</strong>：它提供最基础、最原始的文本交互能力，不包含任何额外的增强功能或复杂逻辑。</li>
+<li><strong>类比</strong>：你可以把它看作是一个 <strong>HTTP 请求库</strong>。它知道如何格式化请求并发送到服务器（LLM 服务），以及如何解析响应，但它本身不处理业务逻辑。</li>
+</ul>
+<p><img src="/2025/08/06/chatClient%E4%B8%8EchatModel/ChatModel.png" srcset="/img/loading.gif" lazyload alt="ChatModel 在 SpringAi 中的职责"></p>
+<h4 id="1-输入-Inputs"><a href="#1-输入-Inputs" class="headerlink" title="1. 输入 (Inputs)"></a>1. 输入 (Inputs)</h4><ul>
+<li><strong>Prompt</strong>: 用户的核心输入，可以是一个问题、一段文本或指令。</li>
+<li><strong>Instructions</strong>: 指令，它是更广泛的输入，可以包括文本、音频、图像、视频等，具体取决于模型的类型。</li>
+<li><strong>Chat Options (Start-Up)</strong>: 在 <code>ChatModel</code> 初始化时设置的全局或默认配置。例如，你可以设置默认使用的 AI 模型（如 GPT-4）或温度（temperature）等参数。这些选项对所有请求都有效，除非被覆盖。</li>
+<li><strong>Chat Options (Runtime)</strong>: 每次请求时动态传递的配置。这些选项具有更高的优先级，会覆盖 <code>Start-Up</code> 时设置的任何默认选项。</li>
+</ul>
+<h4 id="2-模型核心处理-ChatModel-StreamingChatModel"><a href="#2-模型核心处理-ChatModel-StreamingChatModel" class="headerlink" title="2. 模型核心处理 (ChatModel &#x2F; StreamingChatModel)"></a>2. 模型核心处理 (ChatModel &#x2F; StreamingChatModel)</h4><p>这是整个流程的核心，它充当了 Spring AI 和底层原生大模型之间的“桥梁”。</p>
+<ul>
+<li><strong>Convert Input</strong>: 这一步将 Spring AI 抽象的输入（<code>Prompt</code> 和 <code>Instructions</code>）转换成底层原生 LLM API 所需的请求格式。例如，将一个 <code>Prompt</code> 对象转换成一个 JSON 格式的 <code>Request</code>。</li>
+<li><strong>Merge Options</strong>: 这一步会合并 <code>Start-Up</code> 和 <code>Runtime</code> 的 <code>Chat Options</code>。如果 <code>Runtime</code> 中设置了某个参数，它会优先使用 <code>Runtime</code> 的值，否则使用 <code>Start-Up</code> 的默认值。</li>
+<li><strong>调用原生 LLM API</strong>: 处理后的请求被发送到底层 AI 模型。图中的 <code>AI Model</code> 代表了实际的大语言模型服务（如 OpenAI 的 API、通义千问等）。模型处理请求后，会返回一个原生格式的 <code>Response</code>。</li>
+<li><strong>Convert Output</strong>: 这一步将原生模型的 <code>Response</code> 转换回 Spring AI 定义的标准输出格式，也就是 <code>ChatResponse</code>。</li>
+</ul>
+<h4 id="3-输出-Output"><a href="#3-输出-Output" class="headerlink" title="3. 输出 (Output)"></a>3. 输出 (Output)</h4><ul>
+<li><strong>ChatResponse</strong>: 这是 <code>ChatModel</code> 返回给你的最终标准响应对象。它包含了 AI 模型生成的所有信息。</li>
+<li><strong>Generations</strong>: 响应的核心部分，代表了 AI 模型的生成结果。</li>
+<li><strong>Output</strong>: 最终生成的内容，通常是纯文本。</li>
+<li><strong>Metadata</strong>: 包含与本次请求和响应相关的额外元数据，比如使用 token 的数量、模型 ID 等。</li>
+</ul>
+<h3 id="使用实例"><a href="#使用实例" class="headerlink" title="使用实例"></a>使用实例</h3><h4 id="ChatModel初始化"><a href="#ChatModel初始化" class="headerlink" title="ChatModel初始化"></a>ChatModel初始化</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs Java">chatModel = OpenAiChatModel.builder()<br>                .openAiApi(openAiApi)<br>                .defaultOptions(OpenAiChatOptions.builder()<br>                        .model(<span class="hljs-string">&quot;gpt-4.1-mini&quot;</span>)<br>                        .toolCallbacks(<span class="hljs-keyword">new</span> <span class="hljs-title class_">SyncMcpToolCallbackProvider</span>(stdioMcpClient(), sseMcpClient01(), sseMcpClient02()).getToolCallbacks())<br>                        .build())<br>                .build();<br></code></pre></td></tr></table></figure>
+
+<h4 id="ChatModel调用"><a href="#ChatModel调用" class="headerlink" title="ChatModel调用"></a>ChatModel调用</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">test_chat_model_call</span><span class="hljs-params">()</span> &#123;<br>       <span class="hljs-type">Prompt</span> <span class="hljs-variable">prompt</span> <span class="hljs-operator">=</span> Prompt.builder()<br>               .messages(<span class="hljs-keyword">new</span> <span class="hljs-title class_">UserMessage</span>(<br>                       <span class="hljs-string">&quot;&quot;&quot;</span><br><span class="hljs-string">                               有哪些工具可以使用</span><br><span class="hljs-string">                               &quot;&quot;&quot;</span>))<br>               .build();<br><br>       <span class="hljs-type">ChatResponse</span> <span class="hljs-variable">chatResponse</span> <span class="hljs-operator">=</span> chatModel.call(prompt);<br><br>       log.info(<span class="hljs-string">&quot;测试结果(call):&#123;&#125;&quot;</span>, JSON.toJSONString(chatResponse));<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="ChatClient"><a href="#ChatClient" class="headerlink" title="ChatClient"></a>ChatClient</h2><p><code>ChatModel</code> 和 <code>ChatClient</code> 在 Spring AI Alibaba 中扮演着不同的角色，它们之间的区别可以这样理解：</p>
+<h3 id="ChatClient：上层业务封装与增强"><a href="#ChatClient：上层业务封装与增强" class="headerlink" title="ChatClient：上层业务封装与增强"></a>ChatClient：上层业务封装与增强</h3><p><code>ChatClient</code> 是在 <code>ChatModel</code> 之上构建的，它是一个 <strong>更高级、更易用、功能更丰富</strong> 的 API。</p>
+<ul>
+<li><strong>职责</strong>：它的职责是为开发者提供一个更“流畅”（Fluent API）的接口，并集成各种增强功能，简化与 AI 模型的交互。</li>
+<li><strong>功能</strong>：<code>ChatClient</code> 不仅能调用 <code>ChatModel</code> 的基础能力，还能通过 <strong>Advisor</strong> 机制来增强 AI 的行为。例如，它能：<ul>
+<li><strong>管理对话记忆</strong>：通过 <code>PromptChatMemoryAdvisor</code> 让 AI 记住多轮对话的上下文。</li>
+<li><strong>集成外部知识</strong>：通过 <code>RagAnswerAdvisor</code> 实现检索增强生成（RAG），让 AI 在回答时参考外部知识库。</li>
+<li><strong>处理流式响应</strong>：提供 <code>stream</code> 方法来处理异步、逐步返回的响应。</li>
+</ul>
+</li>
+<li><strong>类比</strong>：如果 <code>ChatModel</code> 是 HTTP 请求库，那么 <code>ChatClient</code> 就是一个 <strong>功能齐全的 Web 框架</strong>。它在底层 HTTP 请求之上封装了路由、会话管理、数据处理等一系列高级功能，让你能更高效地构建应用。</li>
+</ul>
+<h3 id="ChatClient创建"><a href="#ChatClient创建" class="headerlink" title="ChatClient创建"></a>ChatClient创建</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java">chatClient = ChatClient.builder(chatModel)<br>                .defaultSystem(<span class="hljs-string">&quot;&quot;&quot;</span><br><span class="hljs-string">                        	 prompt</span><br><span class="hljs-string">                        &quot;&quot;&quot;</span>)<br>                .defaultAdvisors(<br>                        PromptChatMemoryAdvisor.builder(<br>                                MessageWindowChatMemory.builder()<br>                                        .maxMessages(<span class="hljs-number">100</span>)<br>                                        .build()<br>                        ).build(),<br>                        <span class="hljs-keyword">new</span> <span class="hljs-title class_">RagAnswerAdvisor</span>(vectorStore, SearchRequest.builder()<br>                                .topK(<span class="hljs-number">5</span>)<br>                                .filterExpression(<span class="hljs-string">&quot;knowledge == &#x27;article-prompt-words&#x27;&quot;</span>)<br>                                .build()),<br>                        SimpleLoggerAdvisor.builder().build())<br>                .build();<br></code></pre></td></tr></table></figure>
+
+<h3 id="处理ChatClient响应"><a href="#处理ChatClient响应" class="headerlink" title="处理ChatClient响应"></a>处理ChatClient响应</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-comment">//返回ChatResponse</span><br><span class="hljs-type">ChatResponse</span> <span class="hljs-variable">chatResponse</span> <span class="hljs-operator">=</span> chatClient.prompt()<br>        .user(<span class="hljs-string">&quot;Tell me a joke&quot;</span>)<br>        .call()<br>        .chatResponse();<br><br><span class="hljs-comment">//返回实体类</span><br>  <span class="hljs-type">ActorFilms</span> <span class="hljs-variable">actorFilms</span> <span class="hljs-operator">=</span> chatClient.prompt()<br>        .user(<span class="hljs-string">&quot;Generate the filmography for a random actor.&quot;</span>)<br>        .call()<br>        .entity(ActorFilms.class);<br><span class="hljs-comment">//流式响应</span><br>  Flux&lt;String&gt; output = chatClient.prompt()<br>        .user(<span class="hljs-string">&quot;Tell me a joke&quot;</span>)<br>        .stream()<br>        .content();<br><span class="hljs-comment">//流式响应会异步地返回响应，当 AI 模型生成响应时，响应内容会以流的形式逐步返回，而不是等待整个响应完成。这对于处理长响应特别有用，因为它能让用户更快地看到部分结果，而无需等待全部内容。</span><br></code></pre></td></tr></table></figure>
+
+<h4 id="call-返回值"><a href="#call-返回值" class="headerlink" title="call() 返回值"></a>call() 返回值</h4><p><code>ChatClient.call()</code> 方法支持几种不同类型的响应格式。</p>
+<ul>
+<li><code>String content()</code>：返回响应的字符串内容</li>
+<li><code>ChatResponse chatResponse()</code>：返回<code>ChatResponse</code>包含多个代以及有关响应的元数据的对象，例如，使用了多少个令牌来创建响应。</li>
+<li>返回 Java 类型<ul>
+<li>entity(ParameterizedTypeReference type)：用于返回实体类型的集合。</li>
+<li>entity(Class type): 用于返回特定的实体类型。</li>
+<li>entity(StructuredOutputConverter structuredOutputConverter): 用于指定一个实例 <code>StructuredOutputConverter</code>，将 <code>String</code> 转换为实体类型。</li>
+</ul>
+</li>
+</ul>
+<h4 id="stream-返回值"><a href="#stream-返回值" class="headerlink" title="stream() 返回值"></a>stream() 返回值</h4><p>您还可以调用该<code>stream</code>方法而<code>call</code>不是，在指定<code>stream</code>方法后<code>ChatClient</code>，响应类型有几个选项：</p>
+<ul>
+<li><code>Flux&lt;String&gt; content()</code>：返回由AI模型生成的字符串的Flux。</li>
+<li><code>Flux&lt;ChatResponse&gt; chatResponse()</code>：返回对象的 Flux <code>ChatResponse</code>，其中包含有关响应的附加元数据。</li>
+</ul>
+<h3 id="ChatClient默认设置"><a href="#ChatClient默认设置" class="headerlink" title="ChatClient默认设置"></a>ChatClient默认设置</h3><ul>
+<li><code>defaultOptions(ChatOptions chatOptions)</code>：传入 <code>ChatOptions</code> 类中定义的可移植选项或特定于模型实现的如 <code>DashScopeChatOptions</code> 选项。</li>
+<li><code>defaultFunction(String name, String description, java.util.function.Function&lt;I, O&gt; function)</code>：<code>name</code> 用于在用户文本中引用该函数，<code>description</code>解释该函数的用途并帮助 AI 模型选择正确的函数以获得准确的响应，参数 <code>function</code> 是模型将在必要时执行的 Java 函数实例。</li>
+<li><code>defaultFunctions(String... functionNames)</code>：应用程序上下文中定义的 java.util.Function 的 bean 名称。</li>
+<li><code>defaultUser(String text)</code>、<code>defaultUser(Resource text)</code>、<code>defaultUser(Consumer&lt;UserSpec&gt; userSpecConsumer)</code> 这些方法允许您定义用户消息输入，<code>Consumer&lt;UserSpec&gt;</code>允许您使用 lambda 指定用户消息输入和任何默认参数。</li>
+<li><code>defaultAdvisors(RequestResponseAdvisor... advisor)</code>：Advisors 允许修改用于创建 <code>Prompt</code> 的数据，<code>QuestionAnswerAdvisor</code> 实现通过在 Prompt 中附加与用户文本相关的上下文信息来实现 <code>Retrieval Augmented Generation</code> 模式。</li>
+<li><code>defaultAdvisors(Consumer&lt;AdvisorSpec&gt; advisorSpecConsumer)</code>：此方法允许您定义一个 <code>Consumer</code> 并使用 <code>AdvisorSpec</code> 配置多个 Advisor，Advisor 可以修改用于创建 <code>Prompt</code> 的最终数据，<code>Consumer&lt;AdvisorSpec&gt;</code> 允许您指定 lambda 来添加 Advisor 例如 <code>QuestionAnswerAdvisor</code>。</li>
+</ul>
+<p>您可以在运行时使用 <code>ChatClient</code> 提供的不带 <code>default</code> 前缀的相应方法覆盖这些默认值。</p>
+<ul>
+<li><code>options(ChatOptions chatOptions)</code></li>
+<li><code>function(String name, String description, java.util.function.Function&lt;I, O&gt; function)</code></li>
+<li><code>functions(String... functionNames)</code></li>
+<li><code>user(String text)</code>、<code>user(Resource text)</code>、<code>user(Consumer&lt;UserSpec&gt; userSpecConsumer)</code></li>
+<li><code>advisors(RequestResponseAdvisor... advisor)</code></li>
+<li><code>advisors(Consumer&lt;AdvisorSpec&gt; advisorSpecConsumer)</code></li>
+</ul>
+<h3 id="Advisors"><a href="#Advisors" class="headerlink" title="Advisors"></a>Advisors</h3><p>“advisor”（顾问）是 Spring AI Alibaba 中一个非常重要的概念，它采用了 <strong>拦截器链</strong> 的设计模式(类似于 Spring 中的<code>AOP</code>)。</p>
+<h4 id="advisor-的核心作用和工作方式"><a href="#advisor-的核心作用和工作方式" class="headerlink" title="advisor 的核心作用和工作方式"></a>advisor 的核心作用和工作方式</h4><ol>
+<li><strong>修改传入的 Prompt</strong>：在发送请求给 AI 模型之前，advisor 能够截获这个请求并对其进行修改。例如，你可以通过它来注入 <strong>检索数据（Retrieval Context）</strong> 和 <strong>对话历史（Chat Memory）</strong>。</li>
+<li><strong>增强模型能力</strong>：通过注入额外的数据，advisor 使得 AI 模型的能力得以增强。例如，它让模型能够在同一个会话中记住之前的聊天历史，或者在回答问题时参考外部的知识库（通过 RAG）。</li>
+<li><strong>自定义逻辑</strong>：你可以编写自己的 advisor，来实现在请求和响应流程中的任何自定义操作，比如日志记录、数据格式转换等。</li>
+</ol>
+<p>通过Advisors 配置chatClient：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs Java"> <span class="hljs-type">String</span> <span class="hljs-variable">content</span> <span class="hljs-operator">=</span> chatClient.prompt()<br>       .user(<span class="hljs-string">&quot;Please answer my question XYZ&quot;</span>)<br>       .advisors(a -&gt; a.param(QuestionAnswerAdvisor.FILTER_EXPRESSION, <span class="hljs-string">&quot;type == &#x27;Spring&#x27;&quot;</span>))<br>       .call()<br>       .content();<br><span class="hljs-comment">//聊天记忆，将历史100条对话进行注入</span><br> .defaultAdvisors(<br>                       PromptChatMemoryAdvisor.builder(<br>                               MessageWindowChatMemory.builder()<br>                                       .maxMessages(<span class="hljs-number">100</span>)<br>                                       .build()<br>                       ).build(),<br> <span class="hljs-comment">//日志记录</span><br>   <span class="hljs-type">ChatResponse</span> <span class="hljs-variable">response</span> <span class="hljs-operator">=</span> ChatClient.create(chatModel).prompt()<br>           .advisors(<span class="hljs-keyword">new</span> <span class="hljs-title class_">SimpleLoggerAdvisor</span>())<br>           .user(<span class="hljs-string">&quot;Tell me a joke?&quot;</span>)<br>           .call()<br>           .chatResponse();<br></code></pre></td></tr></table></figure>
+
+<p>该 <code>FILTER_EXPRESSION</code> 参数允许您根据提供的表达式动态过滤搜索结果。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/SpringAi/" class="print-no-link">#SpringAi</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>ChatClient与ChatModel</div>
+      <div>http://moyoo0.github.io/2025/08/06/chatClient与chatModel/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>moyoo</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>August 6, 2025</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/05/%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B8%8E%E5%AD%97%E7%AC%A6%E6%95%B0%E7%BB%84%E5%B8%B8%E7%94%A8-api/" title="字符串与字符数组常用 api">
+                        <span class="hidden-mobile">字符串与字符数组常用 api</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"FyJriWj3B2ezdRzT1ycTlHTK-gzGzoHsz","appKey":"qxYsNPBUjdgt7F2Io9tPsZvr","path":"window.location.pathname","placeholder":"说点什么","avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"https://fyjriwj3.lc-cn-n1-shared.com","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+  <script>
+  Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        Views: 
+        <span id="leancloud-site-pv"></span>
+        
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        Visitors: 
+        <span id="leancloud-site-uv"></span>
+        
+      </span>
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
